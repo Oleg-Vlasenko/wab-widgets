@@ -1,0 +1,333 @@
+# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+import os,sys
+rootpath = os.path.dirname(__file__)
+sys.path.append(rootpath)  #add to path local
+#
+from flask import render_template, flash, redirect, url_for, send_from_directory, make_response
+from appl import app
+from appl.forms import LoginForm
+from appl.forms import RegistrationForm
+
+from appl import db
+
+from flask_login import current_user, login_user
+from appl.models import Users
+from flask_login import logout_user
+from flask_login import login_required
+from flask import request
+from werkzeug.urls import url_parse
+
+#from flask import url_for, request, Response, render_template, abort, redirect, send_from_directory, flash
+
+#from flask_restful import Resource, Api
+
+import datetime
+
+import urllib3
+http = urllib3.PoolManager()
+
+import psycopg2
+from psycopg2.extras import Json
+from psycopg2.extensions import register_adapter
+register_adapter(dict, Json)
+
+import json, decimal
+def default(self, obj):
+    if isinstance(obj, decimal.Decimal): return float(obj)
+
+import serversidetable as st
+from config import Config
+connstring = Config.connstring
+#Config.SQLALCHEMY_DATABASE_URI
+#Config.connstring
+
+@app.route('/')
+@app.route('/index')
+#@login_required
+def index():
+    #user = {'username': 'miguel'}
+    return render_template("index.html", title='Home Page')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = Users.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('index')
+        return redirect(next_page)
+    return render_template('login.html', title='Sign In', form=form)
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = Users(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        user.status = 0
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
+
+
+
+def getLayersByGroup(groupname=None):
+    data = {}
+    if not groupname:
+        datasetid = -1
+        return data
+
+    con = None
+    try:
+        con = psycopg2.connect(connstring)
+        #cur = con.cursor()
+        cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        #sql = "SELECT keyvalue FROM {}	where keyname = '{}'".format(tablename, key )
+        sql = '''select 
+                id,
+                dsname,
+                datasetid,
+                typelayer,
+                layeroptions,
+                extent,
+                dsdata 
+                from register.v_datasets_group
+                where 1=1
+        '''
+        #              ' % (groupname)
+        if groupname is not None:
+            sql = "%s and groupdataset = '%s' " % (sql, groupname)
+        cur.execute(sql)
+        select = cur.fetchall()
+        if len(select) > 0:
+            cols = list(map(lambda x: x[0], cur.description)) #
+            #select.insert(0, tuple(cols))  # insert elements by list.insert(index, new_item) method если нужно вставить заголовки в начало списка
+            dcols = {}
+            '''
+            for i in range(len(cols)):
+                #dcols[cols[i]] = i
+                #data[cols[i]] = select[0][i]
+                data[cols[i]] = select[i]
+            '''
+
+        rows = {}
+        rows['layers'] = []
+        # select.insert(0, tuple(cols))  # insert elements by list.insert(index, new_item) method если нужно вставить заголовки в начало списка
+        # dcols = {}
+        for row in select:
+            datarow = {}
+            for i in range(len(cols)):
+                #dcols[cols[i]] = i
+                #data[cols[i]] = select[0][i]
+                datarow[cols[i]] = row[i]
+            '''    
+            for i in range(len(cols)):
+                if cols[i] == 'geom':
+                    pass
+                else:
+                    datarow.append(row[i])
+            '''
+            rows['layers'].append(datarow)
+        #data['data'] = rows
+        data = rows
+    except Exception as e:
+        pass
+        #print(e)
+    finally:
+        if con:
+            con.close()
+
+    #	datasetid = 'test14_1613330564803'
+    return data
+
+
+def __get_kcp_code():
+    pass
+    sql = '''
+    select 
+    	kod,
+    	"group", prizn,
+    	kod ||' '|| "group" ||' '||  	prizn as  kod_prizn,
+    	koeff
+    from layers.kcp 
+    
+    '''.format(cadnum='')
+    print(sql)
+    try:
+        con = psycopg2.connect(connstring)
+        cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        # cur = con.cursor()
+        cur.execute(sql)
+        select = cur.fetchone()
+        data = {}
+        if select:
+            print(select)
+            cols = list(map(lambda x: x[0], cur.description)) #
+            for key in cols:
+                data[key] = select.get(key)
+        # con.commit()
+    except Exception as e:
+        status = 500
+    finally:
+        if con:
+            con.close()
+
+
+@app.route('/parcel/<parcel_id>', methods=['GET'])
+def __parcel(parcel_id=None, con=None):
+    result = {}
+    if not parcel_id:
+        parcel_id = ""
+        return "", 200 # 500
+
+    environ = request.environ
+    method = request.method
+    sql = '''
+    select 
+        *, public.st_asgeojson(public.st_transform(geom,4326)) as geomjson
+    from layers.v_diljanky where cadnum = '{cadnum}'
+    '''.format(cadnum=parcel_id)
+    print(sql)
+    result['status'] = False
+    try:
+        con = psycopg2.connect(connstring)
+        cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        # cur = con.cursor()
+        cur.execute(sql)
+        select = cur.fetchone()
+        data = {}
+        if select:
+            print(select)
+            cols = list(map(lambda x: x[0], cur.description)) #
+            #select.insert(0, tuple(cols))  # insert elements by list.insert(index, new_item) method если нужно вставить заголовки в начало списка
+            for key in cols:
+                data[key] = select.get(key)
+
+
+        # con.commit()
+        result['status'] = True
+    except Exception as e:
+        result["error"] = str(e.args[0])
+        result['status'] = False
+        status = 500
+    finally:
+        if con:
+            con.close()
+    parceldata = {}
+    parceldata['wmsurl'] = Config.GEOSERVER + '/wms'
+    parceldata['select']  = select
+    parceldata['data'] = data
+    # return render_template('parcel_edit.html')
+    return render_template('parcel_edit.html', parceldata=parceldata)
+
+
+@app.route('/parcelgeom/<parcel_geom>', methods=['GET','POST'])
+def __parcelgeom(parcel_geom=None, con=None):
+    # print('parcelgeom')
+    # return 'parcelgeom'
+
+    result = {}
+    if not parcel_geom:
+        parcel_id = ""
+        return "", 200 # 500
+
+    environ = request.environ
+    method = request.method
+
+    con = psycopg2.connect(connstring)
+    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    parceldata = {}
+
+    sql = '''
+    SELECT id, ST_Area(ST_GeomFromGeoJSON('{geom}'):: geometry)
+    FROM arcgis.public."червоні_лінії_діпроміста" n
+    LIMIT 1
+        '''.format(geom=parcel_geom)
+
+    cur.execute(sql)
+    select = cur.fetchone()
+    parceldata['area'] = select[1]
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."червоні_лінії_діпроміста" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+    rl = []
+    for row in rows:
+        rl.append(row)
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."інші_розроблені_червоні_лінії" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+    rlo = []
+    for row in rows:
+        rlo.append(row)
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."зонінг" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+    zng = []
+    for row in rows:
+        zng.append(row)
+
+    parceldata['red_lines'] = rl
+    parceldata['rl_others'] = rlo
+    parceldata['zoning'] = zng
+
+    print(parceldata)
+    # return 'parcelgeom'
+    return render_template('parcel_geom.html', parceldata=parceldata)
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404
+
+
+#любые шаблоны для которых нет другого маршрута
+@app.route('/<patch>')
+#@login_required
+def _routepatch(patch=None):
+    try:
+        data = {} #get_trdata()
+
+        return render_template(patch + '.html', data = data)
+    except Exception as e:
+        return page_not_found(404)
+
