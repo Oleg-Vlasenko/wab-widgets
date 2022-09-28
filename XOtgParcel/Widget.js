@@ -129,10 +129,12 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
                 //this.drawtoolbar = new Draw(this.map)
                 //this.drawtoolbar.on("draw-end", this._addToMap)
-
+                
+                window.__mg_drawtoolbar = this.drawtoolbar;
+                this.map.setInfoWindowOnClick(false);
                 this.drawtoolbar.activate('polygon');  //'polygon' Draw['POLYGON']
                 this.map.hideZoomSlider();
-
+                
                 //console.log('polygon');
             },
 
@@ -202,10 +204,12 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 console.log(geojson0)
                 // select st_geomfromgeojson(geojson) 
                 dom.byId('message').innerHTML = geojson0;
-                showPopUp('http://192.168.0.15:5020/parcelgeom/' + geojson0);
+                showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
                 //showPopUp(this._urlParcelService + geojson0);
                 //showPopUp('http://192.168.0.115:5020/parcel/2323981500010010105');
-
+                
+                window.__mg_drawtoolbar.deactivate();
+                this.map.setInfoWindowOnClick(true);
             },
             /*
             _showPopUp: function (url, parameters) {
