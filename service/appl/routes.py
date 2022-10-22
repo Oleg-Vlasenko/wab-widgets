@@ -303,17 +303,111 @@ def __parcelgeom(parcel_geom=None, con=None):
     rows = cur.fetchall()
 
     zng = []
+    zng_lst = []
+    zng_grp = []
+    
+    zng_docs = [
+        'В-2',
+        'В-3',
+        'В-4',
+        'В-5',
+        'В-6',
+        'Г-1',
+        'Г-2',
+        'Г-3-1',
+        'Г-3-2',
+        'Г-3-3',
+        'Г-4-1',
+        'Г-4-2',
+        'Г-4-4',
+        'Г-5-1',
+        'Г-5-2',
+        'Г-6',
+        'Г-ТР -1-2',
+        'Ж-1',
+        'Ж-7',
+        'ІК',
+        'ІН-1',
+        'ІН-2',
+        'ІН-3',
+        'КВТ',
+        'КЛ-2',
+        'КС-2',
+        'КС-3',
+        'КС-3-1',
+        'КС-4',
+        'КС-4-1',
+        'КС-5',
+        'КС-5-1',
+        'КС-6',
+        'П-В-5',
+        'П-В-6',
+        'П-Г-2',
+        'П-Г-3-1',
+        'П-Г-6',
+        'П-Ж-1',
+        'П-Ж-7',
+        'П-ІН-1',
+        'П-КС-3-1',
+        'П-КС-4',
+        'П-КС-5',
+        'П-КС-6',
+        'П-Р-2',
+        'П-Р-3',
+        'П-Р-3-2',
+        'П-ТР-2-1',
+        'Р-1',
+        'Р-2',
+        'Р-3',
+        'Р-3-2',
+        'Р-3-4',
+        'Р-4',
+        'С-2',
+        'С-3',
+        'С-4'
+    ]
+
     for row in rows:
         zng.append(row)
-
+        
+    for zng_r in zng:
+        if len(zng_r[10].strip()) > 0:
+            # print(len(zng_r[9].strip()))
+            zng_str = zng_r[9]+'|'+zng_r[10]
+            zng_lst.append(zng_str)
+    
+    # group
+    zng_lst = list(set(zng_lst))
+    # sort
+    zng_lst.sort()
+    # grp and sorted to array
+    for zng_str in zng_lst:
+        zng_grp.append(zng_str.split('|'))
+    # text for printform
+    zng_text = ''
+    for zng_str in zng_grp:
+        zng_text += zng_str[1]+'; '
+    # docx links
+    for idx, zng_str in enumerate(zng_grp):
+        if zng_str[0] in zng_docs:
+            zng_grp[idx].append('docxlnk')
+        else:
+            zng_grp[idx].append('nolnk')
+        
     parceldata['red_lines'] = rl
     parceldata['rl_others'] = rlo
-    parceldata['zoning'] = zng
+    parceldata['zoning'] = zng_grp
+    parceldata['zng_text'] = zng_text
 
-    print(parceldata)
-    # return 'parcelgeom'
+    print(parceldata['zoning'])
     return render_template('parcel_geom.html', parceldata=parceldata)
 
+@app.route('/printform', methods=['GET','POST'])
+def __printform():
+    print(request.form)
+    print("request.form['zng_text']")
+    print(request.form['zng_text'])
+    return render_template('printform.html', printdata={'zng_text': request.form['zng_text']})
 
 @app.errorhandler(404)
 def page_not_found(error):

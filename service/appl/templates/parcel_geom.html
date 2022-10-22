@@ -1,9 +1,23 @@
 <html>
 <head>
+<meta charset="utf-8">
+
+<script
+  src="https://code.jquery.com/jquery-3.6.1.js"
+  integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI="
+  crossorigin="anonymous">
+</script>
+
 <style>
+
 h3 {
     color: gray;
     margin-left: 40px;
+}
+
+h3 a {
+    color: #2196F3;
+    text-decoration:none;
 }
 
 body {
@@ -93,13 +107,10 @@ body {
 }
 
 .cell1 {
-    width: 30%;
+    width: 40px;
 }
 .cell2 {
-    width: 10%;
-}
-.cell3 {
-    width: 60%;
+    <!-- width: 10%; -->
 }
 
 @media screen and (max-width: 580px) {
@@ -109,78 +120,208 @@ body {
   }
 }
 
+
+/* Customize the label (the container) */
+.container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  padding-top: 2px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: #eee;
+}
+.checkmark.header-checkmark {
+    background-color: #2196F3;
+}
+
+<!-- .container:hover input ~ .checkmark.header-checkmark { -->
+  <!-- background-color: #509ee9; -->
+<!-- } -->
+
+<!-- /* On mouse-over, add a grey background color */ -->
+<!-- .container:hover input ~ .checkmark { -->
+  <!-- background-color: #ccc; -->
+<!-- } -->
+
+/* When the checkbox is checked, add a blue background */
+.container input:checked ~ .checkmark {
+  background-color: #2196F3;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.container .checkmark:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
 </style>
 </head>
 <body>
 
 <br>
 
-<h3>Площадь участка {{ parceldata['area'] }} м2</h3>
+<!-- <h3>parceldata {{ parceldata|tojson }}</h3> -->
+<h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:$('#printform').submit()">Вивести друковану форму</a></h3>
 
 <div class="wrapper">
   
+  {% if parceldata['zoning']|length > 0  %}
   <div class="table">
-    
+  
     <div class="row header blue">
       <div class="cell cell1">
-        Слой
+        <label class="container">&nbsp;<input id="zoning-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
       </div>
       <div class="cell cell2">
-        Id
-      </div>
-      <div class="cell cell3">
-        Данные
+        <label class="container">Зонинг
+        </label>
+       
       </div>
     </div>
-    
+
     {% for row in parceldata['zoning'] %}
-    <div class="row">
-    <tr>
-      <div class="cell" data-title="layer">
-        Зонинг
-      </div>
+    <div class="row data-row">
       <div class="cell" data-title="id">
-        {{ row[2] }}
+        <label class="container">&nbsp;<input type="checkbox" checked="checked"><span class="checkmark"></span>
       </div>
       <div class="cell" data-title="data">
-        {{ row[9] }} - {{ row[10] }} {% if (row[6]).strip() %}, {{ row[6] }} {% endif %}
+        {% if row[2] == 'docxlnk' %}
+            <a href="https://gisserver.gapu.local/docs/{{ row[0] }}.docx">{{ row[0] }} - {{ row[1] }}</a>
+        {% else %}
+            {{ row[0] }} - {{ row[1] }}
+        {% endif %}
       </div>
     </div>
     {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if parceldata['rl_others']|length > 0  %}
+  <div class="table">
+  
+    <div class="row header blue">
+      <div class="cell cell1">
+        Id
+      </div>
+      <div class="cell cell2">
+        <label class="container">Проч. кр. линии
+            <input id="rl_others-checkbox" type="checkbox" checked="checked">
+        <span class="checkmark header-checkmark"></span>
+        </label>
+       
+      </div>
+    </div>
 
     {% for row in parceldata['rl_others'] %}
-    <div class="row">
-      <div class="cell" data-title="layer">
-        Проч. кр. линии
-      </div>
+    <div class="row data-row">
       <div class="cell" data-title="id">
-        {{ row[2] }}
+        <label class="container">{{ row[2] }}
+            <input type="checkbox" checked="checked">
+        <span class="checkmark"></span>
       </div>
       <div class="cell" data-title="data">
         прот № {{ row[8] }}, реш № {{ row[5] }}
       </div>
     </div>
     {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if parceldata['red_lines']|length > 0  %}
+  <div class="table">
+  
+    <div class="row header blue">
+      <div class="cell cell1">
+        Id
+      </div>
+      <div class="cell cell2">
+        <label class="container">Кр. линии
+            <input id="red_lines-checkbox" type="checkbox" checked="checked">
+        <span class="checkmark header-checkmark"></span>
+        </label>
+       
+      </div>
+    </div>
 
     {% for row in parceldata['red_lines'] %}
-    <div class="row">
-      <div class="cell" data-title="layer">
-        Кр. линии
-      </div>
+    <div class="row data-row">
       <div class="cell" data-title="id">
-        {{ row[2] }}
+        <label class="container">{{ row[2] }}
+            <input type="checkbox" checked="checked">
+        <span class="checkmark"></span>
       </div>
       <div class="cell" data-title="data">
         ************
       </div>
     </div>
-
     {% endfor %}
-
-
-   
   </div>
-  
+  {% endif %}
+ 
 </div>
+
+<form id="printform" action="http://192.168.17.45:5024/printform" method="POST" style="display:none">
+    <input name="zng_text" type="text" value="{{ parceldata['zng_text'] }}">
+</form>
+
 </body>
 </html>
+
+<script>
+
+$('#zoning-checkbox').change(function() { 
+    $(this).parents('.table').find('.data-row').toggle() 
+});
+
+$('#rl_others-checkbox').change(function() { 
+    $(this).parents('.table').find('.data-row').toggle() 
+});
+
+$('#red_lines-checkbox').change(function() { 
+    $(this).parents('.table').find('.data-row').toggle() 
+});
+
+</script>
