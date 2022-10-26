@@ -2,11 +2,7 @@
 <head>
 <meta charset="utf-8">
 
-<script
-  src="https://code.jquery.com/jquery-3.6.1.js"
-  integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI="
-  crossorigin="anonymous">
-</script>
+<script type="text/javascript" src="/static/jq361.min.js"></script>
 
 <style>
 
@@ -17,6 +13,11 @@ h3 {
 
 h3 a {
     color: #2196F3;
+    text-decoration:none;
+}
+
+.container a {
+    color: #2980b9;
     text-decoration:none;
 }
 
@@ -107,7 +108,7 @@ body {
 }
 
 .cell1 {
-    width: 40px;
+    width: 180px;
 }
 .cell2 {
     <!-- width: 10%; -->
@@ -212,61 +213,86 @@ body {
   <div class="table">
   
     <div class="row header blue">
-      <div class="cell cell1">
-        <label class="container">&nbsp;<input id="zoning-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+      <div class="cell">
+        <label class="container">&nbsp;Зонінг
+            <input id="zoning-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+        </label>
       </div>
       <div class="cell cell2">
-        <label class="container">Зонинг
-        </label>
-       
       </div>
     </div>
 
     {% for row in parceldata['zoning'] %}
     <div class="row data-row">
       <div class="cell" data-title="id">
-        <label class="container">&nbsp;<input type="checkbox" checked="checked"><span class="checkmark"></span>
+        <label class="container">&nbsp;
+            {% if row[2] == 'docxlnk' %}
+                <a href="https://gisserver.gapu.local/docs/{{ row[0] }}.docx">{{ row[0] }} - {{ row[1] }}</a>
+            {% else %}
+                {{ row[0] }} - {{ row[1] }}
+            {% endif %}
+            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+        </label>
       </div>
       <div class="cell" data-title="data">
-        {% if row[2] == 'docxlnk' %}
-            <a href="https://gisserver.gapu.local/docs/{{ row[0] }}.docx">{{ row[0] }} - {{ row[1] }}</a>
-        {% else %}
-            {{ row[0] }} - {{ row[1] }}
-        {% endif %}
       </div>
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
-  {% if parceldata['rl_others']|length > 0  %}
+  {% if parceldata['hist'][0] or parceldata['hist'][1] %}
   <div class="table">
   
     <div class="row header blue">
-      <div class="cell cell1">
-        Id
+      <div class="cell">
+        <label class="container">&nbsp;Зони історико-культурного призначення
+            <input id="hist-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+        </label>
       </div>
       <div class="cell cell2">
-        <label class="container">Проч. кр. линии
-            <input id="rl_others-checkbox" type="checkbox" checked="checked">
-        <span class="checkmark header-checkmark"></span>
-        </label>
-       
       </div>
     </div>
-
-    {% for row in parceldata['rl_others'] %}
+    
+    {% if parceldata['hist'][0] %}
     <div class="row data-row">
       <div class="cell" data-title="id">
-        <label class="container">{{ row[2] }}
-            <input type="checkbox" checked="checked">
-        <span class="checkmark"></span>
+        <label class="container">&nbsp;
+            Зони регулювання забудови в межах історичних ареалів
+            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+        </label>
       </div>
       <div class="cell" data-title="data">
-        прот № {{ row[8] }}, реш № {{ row[5] }}
       </div>
     </div>
-    {% endfor %}
+    {% endif %}
+
+    {% if parceldata['hist'][1] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Зони охорони пам'яток архітектури
+            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+
+    {% if parceldata['hist'][2] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Зони об'єктів природно-заповідного фонду
+            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+
   </div>
   {% endif %}
 
@@ -275,26 +301,23 @@ body {
   
     <div class="row header blue">
       <div class="cell cell1">
-        Id
+        <label class="container">&nbsp;Червоні лінії
+            <input id="red_lines-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+        </label>
       </div>
       <div class="cell cell2">
-        <label class="container">Кр. линии
-            <input id="red_lines-checkbox" type="checkbox" checked="checked">
-        <span class="checkmark header-checkmark"></span>
-        </label>
-       
       </div>
     </div>
 
     {% for row in parceldata['red_lines'] %}
     <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">{{ row[2] }}
-            <input type="checkbox" checked="checked">
-        <span class="checkmark"></span>
+      <div class="cell cell1" data-title="id">
+        <label class="container">{{ row[1] }}
+            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+        </label>
       </div>
       <div class="cell" data-title="data">
-        ************
+        {{ row[2] }}
       </div>
     </div>
     {% endfor %}
@@ -305,6 +328,10 @@ body {
 
 <form id="printform" action="http://192.168.17.45:5024/printform" method="POST" style="display:none">
     <input name="zng_text" type="text" value="{{ parceldata['zng_text'] }}">
+    <input name="rl_text" type="text" value="{{ parceldata['rl_text'] }}">
+    <input name="hist_text1" type="text" value="{{ parceldata['hist_text1'] }}">
+    <input name="hist_text2" type="text" value="{{ parceldata['hist_text2'] }}">
+    <input name="hist_text3" type="text" value="{{ parceldata['hist_text3'] }}">
 </form>
 
 </body>
@@ -316,7 +343,7 @@ $('#zoning-checkbox').change(function() {
     $(this).parents('.table').find('.data-row').toggle() 
 });
 
-$('#rl_others-checkbox').change(function() { 
+$('#hist-checkbox').change(function() { 
     $(this).parents('.table').find('.data-row').toggle() 
 });
 

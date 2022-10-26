@@ -303,9 +303,49 @@ def __parcelgeom(parcel_geom=None, con=None):
     rows = cur.fetchall()
 
     zng = []
+    for row in rows:
+        zng.append(row)
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."зони регулювання забудови в межах історичних ареалів" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    hist = [False, False, False]
+    if select:
+        hist[0] = True
+        
+    sql = '''
+    SELECT *
+    FROM arcgis.public."зони охорони памяток архітектури" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    if select:
+        hist[1] = True
+        
+    sql = '''
+    SELECT *
+    FROM arcgis.public."Зони обєктів природно_заповідного фонду" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    if select:
+        hist[2] = True
+        
+
     zng_lst = []
     zng_grp = []
-    
     zng_docs = [
         'В-2',
         'В-3',
@@ -367,9 +407,6 @@ def __parcelgeom(parcel_geom=None, con=None):
         'С-4'
     ]
 
-    for row in rows:
-        zng.append(row)
-        
     for zng_r in zng:
         if len(zng_r[10].strip()) > 0:
             # print(len(zng_r[9].strip()))
@@ -394,20 +431,81 @@ def __parcelgeom(parcel_geom=None, con=None):
         else:
             zng_grp[idx].append('nolnk')
         
-    parceldata['red_lines'] = rl
-    parceldata['rl_others'] = rlo
+    rl_str = []
+    rl_grp = []
+    rl_type = 10
+    rl_text = ''
+    for rlr in rl:
+        rl_str.append('3|-|Червоні лінії Діпромісто')
+        if rl_type > 3:
+            rl_type = 3
+        
+    for rlor in rlo:
+        if len(rlor[5].strip()) > 0:
+            rl_str.append('1|Рішення|'+rlor[5]+' від '+rlor[3].strftime('%d.%m.%Y'))
+            if rl_type > 1:
+                rl_type = 1
+        else:
+            rl_str.append('2|Протокол|'+rlor[8].replace('от', 'від'))
+            if rl_type > 2:
+                rl_type = 2
+
+    rl_str = list(set(rl_str))
+    rl_str.sort()
+
+    for rlr in rl_str:
+        rl_grp.append(rlr.split('|'))
+
+    if rl_type == 1:
+        rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ '
+        for rlr in rl_grp:
+            if rlr[0] == '1':
+                rl_text += rlr[2]+'; '
+    
+    elif rl_type == 2:
+        rl_text = 'ЧЕРВОНІ ЛІНІЇ РОЗГЛЯНУТІ НА ЗАСІДАННІ АРХІТЕКТУРНО-МІСТОБУДІВНОЇ РАДИ '
+        for rlr in rl_grp:
+            if rlr[0] == '2':
+                rl_text += rlr[2]+'; '
+                
+    elif rl_type == 3:
+        rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗА МАТЕРІАЛАМИ ДП НАУКОВО-ДОСЛІДНОГО ІНСТИТУТА ПРОЕКТУВАННЯ МІСТ ІМ. Ю.М. БІЛОКОНЯ'
+        
+    hist_text1 = ' - '
+    if hist[0]:
+        hist_text1 = 'Ділянка знаходиться на території історичного ареалу'
+        
+    hist_text2 = ' - '
+    if hist[1]:
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини (або в охоронній зоні об’єкта культурної спадщини)'
+        
+    hist_text3 = ' - '
+    if hist[2]:
+        hist_text3 = 'Ділянка знаходиться в зоні об’єктів природно-заповідного фонду'
+        
+    # print(parceldata['zoning'])
+    # print(parceldata['red_lines'][0])
+    # print(parceldata['rl_others'][0])
+    # return 'red_lines'
+    
     parceldata['zoning'] = zng_grp
     parceldata['zng_text'] = zng_text
-
-    print(parceldata['zoning'])
+    parceldata['red_lines'] = rl_grp
+    parceldata['rl_text'] = rl_text
+    parceldata['hist'] = hist
+    parceldata['hist_text1'] = hist_text1
+    parceldata['hist_text2'] = hist_text2
+    parceldata['hist_text3'] = hist_text3
+    
     return render_template('parcel_geom.html', parceldata=parceldata)
 
 @app.route('/printform', methods=['GET','POST'])
 def __printform():
+    # return 'printform'
+
     print(request.form)
-    print("request.form['zng_text']")
-    print(request.form['zng_text'])
-    return render_template('printform.html', printdata={'zng_text': request.form['zng_text']})
+    printdata = {'zng_text': request.form['zng_text'], 'rl_text': request.form['rl_text'], 'hist_text1': request.form['hist_text1'], 'hist_text2': request.form['hist_text2'], 'hist_text3': request.form['hist_text3']}
+    return render_template('printform.html', printdata=printdata)
 
 @app.errorhandler(404)
 def page_not_found(error):
