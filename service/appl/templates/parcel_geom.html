@@ -108,7 +108,7 @@ body {
 }
 
 .cell1 {
-    width: 180px;
+    width: 300px;
 }
 .cell2 {
     <!-- width: 10%; -->
@@ -206,6 +206,7 @@ body {
 
 <!-- <h3>parceldata {{ parceldata|tojson }}</h3> -->
 <h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:$('#printform').submit()">Вивести друковану форму</a></h3>
+<h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:postpopup()">Вивести друковану форму 2</a></h3>
 
 <div class="wrapper">
   
@@ -227,11 +228,14 @@ body {
       <div class="cell" data-title="id">
         <label class="container">&nbsp;
             {% if row[2] == 'docxlnk' %}
-                <a href="https://gisserver.gapu.local/docs/{{ row[0] }}.docx">{{ row[0] }} - {{ row[1] }}</a>
+                <a href="#" onclick="window.open('https://gisserver.gapu.local/docs/В-2.htm', 
+                         'newwindow',
+                         'width=700,height=700,top=180,left=260'); 
+              return false;" target="_blank">{{ row[0] }} - {{ row[1] }}</a>
             {% else %}
                 {{ row[0] }} - {{ row[1] }}
             {% endif %}
-            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+            <input type="checkbox" checked="checked" class="zng-strings" _prnstr="{{ row[3] }}"><span class="checkmark"></span>
         </label>
       </div>
       <div class="cell" data-title="data">
@@ -302,7 +306,7 @@ body {
     <div class="row header blue">
       <div class="cell cell1">
         <label class="container">&nbsp;Червоні лінії
-            <input id="red_lines-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}" _rlhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
         </label>
       </div>
       <div class="cell cell2">
@@ -313,7 +317,7 @@ body {
     <div class="row data-row">
       <div class="cell cell1" data-title="id">
         <label class="container">{{ row[1] }}
-            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+            <input type="checkbox" checked="checked" class="rl-strings-{{ row[0] }}" _prnstr="{{ row[2] }}"><span class="checkmark"></span>
         </label>
       </div>
       <div class="cell" data-title="data">
@@ -326,7 +330,7 @@ body {
  
 </div>
 
-<form id="printform" action="http://192.168.17.45:5024/printform" method="POST" style="display:none">
+<form id="printform" action="http://192.168.17.45:5024/printform" target="formresult" method="POST" style="display:none">
     <input name="zng_text" type="text" value="{{ parceldata['zng_text'] }}">
     <input name="rl_text" type="text" value="{{ parceldata['rl_text'] }}">
     <input name="hist_text1" type="text" value="{{ parceldata['hist_text1'] }}">
@@ -340,7 +344,7 @@ body {
 <script>
 
 $('#zoning-checkbox').change(function() { 
-    $(this).parents('.table').find('.data-row').toggle() 
+    $(this).parents('.table').find('.data-row').toggle()
 });
 
 $('#hist-checkbox').change(function() { 
@@ -350,5 +354,27 @@ $('#hist-checkbox').change(function() {
 $('#red_lines-checkbox').change(function() { 
     $(this).parents('.table').find('.data-row').toggle() 
 });
+
+function postpopup() {
+    var zng_text = '';
+    $('.zng-strings:checked').each(function() {
+        // console.log($(this).attr('_prnstr'));
+        zng_text = zng_text+$(this).attr('_prnstr')+'<br>';
+    });
+    window.zng_text = zng_text;
+
+    var rl_type = $('#red_lines-checkbox').attr('_rltype');
+    var rl_text = $('#red_lines-checkbox').attr('_rlhdr');
+    if (parseInt(rl_type) < 3) {
+        $('.rl-strings-'+rl_type+':checked').each(function() {
+            console.log($(this).attr('_prnstr'));
+            rl_text = rl_text + $(this).attr('_prnstr')+'; ';
+            // zng_text = zng_text+$(this).attr('_prnstr')+'<br>';
+        });
+    }
+    window.rl_text = rl_text;
+    
+    window.open('/static/printform.html','printform','scrollbars=no,menubar=no,height=700,width=700,left=340, top=100,resizable=yes,toolbar=no,status=no');
+}
 
 </script>

@@ -430,6 +430,8 @@ def __parcelgeom(parcel_geom=None, con=None):
             zng_grp[idx].append('docxlnk')
         else:
             zng_grp[idx].append('nolnk')
+
+        zng_grp[idx].append(zng_str[0]+' '+zng_str[1])
         
     rl_str = []
     rl_grp = []
@@ -442,11 +444,11 @@ def __parcelgeom(parcel_geom=None, con=None):
         
     for rlor in rlo:
         if len(rlor[5].strip()) > 0:
-            rl_str.append('1|Рішення|'+rlor[5]+' від '+rlor[3].strftime('%d.%m.%Y'))
+            rl_str.append('1|Рішення міської ради №|'+rlor[5]+' від '+rlor[3].strftime('%d.%m.%Y'))
             if rl_type > 1:
                 rl_type = 1
-        else:
-            rl_str.append('2|Протокол|'+rlor[8].replace('от', 'від'))
+        elif len(rlor[8].strip()) > 0:
+            rl_str.append('2|Протокол містобудівної ради №|'+rlor[8].replace('от', 'від'))
             if rl_type > 2:
                 rl_type = 2
 
@@ -457,17 +459,15 @@ def __parcelgeom(parcel_geom=None, con=None):
         rl_grp.append(rlr.split('|'))
 
     if rl_type == 1:
-        rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ '
-        for rlr in rl_grp:
-            if rlr[0] == '1':
-                rl_text += rlr[2]+'; '
-    
+        rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ: <br>'
+        # for rlr in rl_grp:
+            # if rlr[0] == '1':
+                # rl_text += rlr[2]+'; '
     elif rl_type == 2:
-        rl_text = 'ЧЕРВОНІ ЛІНІЇ РОЗГЛЯНУТІ НА ЗАСІДАННІ АРХІТЕКТУРНО-МІСТОБУДІВНОЇ РАДИ '
-        for rlr in rl_grp:
-            if rlr[0] == '2':
-                rl_text += rlr[2]+'; '
-                
+        rl_text = 'ЧЕРВОНІ ЛІНІЇ РОЗГЛЯНУТІ НА ЗАСІДАННІ АРХІТЕКТУРНО-МІСТОБУДІВНОЇ РАДИ: <br>'
+        # for rlr in rl_grp:
+            # if rlr[0] == '2':
+                # rl_text += rlr[2]+'; '
     elif rl_type == 3:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗА МАТЕРІАЛАМИ ДП НАУКОВО-ДОСЛІДНОГО ІНСТИТУТА ПРОЕКТУВАННЯ МІСТ ІМ. Ю.М. БІЛОКОНЯ'
         
@@ -492,6 +492,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     parceldata['zng_text'] = zng_text
     parceldata['red_lines'] = rl_grp
     parceldata['rl_text'] = rl_text
+    parceldata['rl_type'] = rl_type
     parceldata['hist'] = hist
     parceldata['hist_text1'] = hist_text1
     parceldata['hist_text2'] = hist_text2
@@ -501,11 +502,17 @@ def __parcelgeom(parcel_geom=None, con=None):
 
 @app.route('/printform', methods=['GET','POST'])
 def __printform():
-    # return 'printform'
-
+    print('printform:')
+    print(request)
     print(request.form)
+    return 'prnform'
+    
     printdata = {'zng_text': request.form['zng_text'], 'rl_text': request.form['rl_text'], 'hist_text1': request.form['hist_text1'], 'hist_text2': request.form['hist_text2'], 'hist_text3': request.form['hist_text3']}
     return render_template('printform.html', printdata=printdata)
+
+@app.route('/printform2', methods=['POST'])
+def __printform2():
+    return render_template('printform2.html')
 
 @app.errorhandler(404)
 def page_not_found(error):
