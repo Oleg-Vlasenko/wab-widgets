@@ -355,7 +355,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони або в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
     pzsvs = []
     for row in rows:
-        pzsvs.append(['Прибережні захисні смуги, ріш. №', row[3]+' від '+row[4].strftime('%d.%m.%Y')])
+        pzsvs.append('Прибережні захисні смуги, ріш. №|'+row[3]+' від '+row[4].strftime('%d.%m.%Y'))
         
     sql = '''
     SELECT *
@@ -366,7 +366,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
-        pzsvs.append(['Водоохоронні зони, ріш. №', row[3]+' від '+row[4].strftime('%d.%m.%Y')])
+        pzsvs.append('Водоохоронні зони, ріш. №|'+row[3]+' від '+row[4].strftime('%d.%m.%Y'))
         
 
     zng_lst = []
@@ -507,7 +507,16 @@ def __parcelgeom(parcel_geom=None, con=None):
     hist_text3 = ' - '
     if hist[2]:
         hist_text3 = 'Ділянка знаходиться в зоні об’єктів природно-заповідного фонду'
-        
+    
+    pzsvs_grp = []
+    # group
+    pzsvs = list(set(pzsvs))
+    # sort
+    pzsvs.sort()
+    # grp and sorted to array
+    for pzsvs_str in pzsvs:
+        pzsvs_grp.append(pzsvs_str.split('|'))
+    
     # print(parceldata['zoning'])
     # print(parceldata['red_lines'][0])
     # print(parceldata['rl_others'][0])
@@ -522,7 +531,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     parceldata['hist_text1'] = hist_text1
     parceldata['hist_text2'] = hist_text2
     parceldata['hist_text3'] = hist_text3
-    parceldata['pzsvs'] = pzsvs
+    parceldata['pzsvs'] = pzsvs_grp
     parceldata['pzsvs_text'] = pzsvs_text
     
     return render_template('parcel_geom.html', parceldata=parceldata)
