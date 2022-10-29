@@ -250,7 +250,8 @@ body {
   
     <div class="row header blue">
       <div class="cell">
-        <label class="container">&nbsp;Зони історико-культурного призначення
+        <label class="container">&nbsp;
+            Зони історико-культурного призначення
             <input id="hist-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
         </label>
       </div>
@@ -263,7 +264,7 @@ body {
       <div class="cell" data-title="id">
         <label class="container">&nbsp;
             Зони регулювання забудови в межах історичних ареалів
-            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+            <input id="hist1" type="checkbox" checked="checked" _prnstr="{{ parceldata['hist_text1'] }}"><span class="checkmark"></span>
         </label>
       </div>
       <div class="cell" data-title="data">
@@ -276,7 +277,7 @@ body {
       <div class="cell" data-title="id">
         <label class="container">&nbsp;
             Зони охорони пам'яток архітектури
-            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+            <input id="hist2" type="checkbox" checked="checked" _prnstr="{{ parceldata['hist_text2'] }}"><span class="checkmark"></span>
         </label>
       </div>
       <div class="cell" data-title="data">
@@ -289,7 +290,7 @@ body {
       <div class="cell" data-title="id">
         <label class="container">&nbsp;
             Зони об'єктів природно-заповідного фонду
-            <input type="checkbox" checked="checked"><span class="checkmark"></span>
+            <input id="hist3" type="checkbox" checked="checked" _prnstr="{{ parceldata['hist_text3'] }}"><span class="checkmark"></span>
         </label>
       </div>
       <div class="cell" data-title="data">
@@ -305,7 +306,8 @@ body {
   
     <div class="row header blue">
       <div class="cell cell1">
-        <label class="container">&nbsp;Червоні лінії
+        <label class="container">&nbsp;
+            Червоні лінії
             <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}" _rlhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
         </label>
       </div>
@@ -322,6 +324,34 @@ body {
       </div>
       <div class="cell" data-title="data">
         {{ row[2] }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if parceldata['pzsvs']|length > 0  %}
+  <div class="table">
+  
+    <div class="row header blue">
+      <div class="cell cell1">
+        <label class="container">&nbsp;ПЗС та ВЗ
+            <input id="pzsvs-checkbox" type="checkbox" checked="checked" _rlhdr="{{ parceldata['pzsvs_text'] }}"><span class="checkmark header-checkmark"></span>
+        </label>
+      </div>
+      <div class="cell cell2">
+      </div>
+    </div>
+
+    {% for row in parceldata['pzsvs'] %}
+    <div class="row data-row">
+      <div class="cell cell1" data-title="id">
+        <label class="container">{{ row[0] }}
+            <input type="checkbox" checked="checked" class="pzsvs-strings" _prnstr="{{ row[1] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+        {{ row[1] }}
       </div>
     </div>
     {% endfor %}
@@ -355,6 +385,10 @@ $('#red_lines-checkbox').change(function() {
     $(this).parents('.table').find('.data-row').toggle() 
 });
 
+$('#pzsvs-checkbox').change(function() { 
+    $(this).parents('.table').find('.data-row').toggle() 
+});
+
 function postpopup() {
     var zng_text = '';
     $('.zng-strings:checked').each(function() {
@@ -367,13 +401,42 @@ function postpopup() {
     var rl_text = $('#red_lines-checkbox').attr('_rlhdr');
     if (parseInt(rl_type) < 3) {
         $('.rl-strings-'+rl_type+':checked').each(function() {
-            console.log($(this).attr('_prnstr'));
             rl_text = rl_text + $(this).attr('_prnstr')+'; ';
-            // zng_text = zng_text+$(this).attr('_prnstr')+'<br>';
         });
     }
     window.rl_text = rl_text;
     
+    var hist_text = $('#hist1:checked').attr('_prnstr');
+    if (hist_text) {
+        window.hist1_text = hist_text;
+    }
+    else {
+        window.hist1_text = ' - ';
+    }
+    
+    hist_text = $('#hist2:checked').attr('_prnstr');
+    if (hist_text) {
+        window.hist2_text = hist_text;
+    }
+    else {
+        window.hist2_text = ' - ';
+    }
+    
+    var hist_text = $('#hist3:checked').attr('_prnstr');
+    if (hist_text) {
+        window.hist3_text = hist_text;
+    }
+    else {
+        window.hist3_text = ' - ';
+    }
+    
+    var pzsvs_text = $('#pzsvs-checkbox').attr('_rlhdr');
+    $('.pzsvs-strings:checked').each(function() {
+        pzsvs_text = pzsvs_text + $(this).attr('_prnstr')+'; ';
+    });
+    window.pzsvs_text = pzsvs_text;
+    
+
     window.open('/static/printform.html','printform','scrollbars=no,menubar=no,height=700,width=700,left=340, top=100,resizable=yes,toolbar=no,status=no');
 }
 

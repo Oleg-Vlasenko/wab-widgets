@@ -163,7 +163,7 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span id="tst-output1" lang=UK style='font-size:12.0pt;font-family:
+  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
   "Times New Roman",serif;mso-ansi-language:UK'></span></p>
   </td>
  </tr>
@@ -274,8 +274,8 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:9.0pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p>{{ printdata['hist_text1'] }}</o:p></span></p>
+  justify;line-height:normal'><span id="hist1-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:6;height:22.5pt'>
@@ -293,7 +293,7 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:22.5pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
   justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p>&nbsp;-&nbsp;</o:p></span></p>
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p> - </o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:7;height:8.25pt'>
@@ -310,8 +310,8 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:8.25pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p>{{ printdata['hist_text2'] }}</span></p>
+  justify;line-height:normal'><span id="hist2-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:8;height:57.35pt'>
@@ -329,8 +329,8 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:57.35pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p>{{ printdata['hist_text3'] }}</o:p></span></p>
+  justify;line-height:normal'><span id="hist3-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:9'>
@@ -419,8 +419,8 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:8.85pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p>&nbsp;</o:p></span></p>
+  justify;line-height:normal'><span id="pzsvs-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:14;height:5.15pt'>
@@ -856,6 +856,10 @@ normal'><span lang=EN-US style='font-size:14.0pt;line-height:107%;font-family:
 if ( window.opener != null ) {
 	$('#zng-text').html(window.opener.zng_text);
 	$('#rl-text').html(window.opener.rl_text);
+	$('#hist1-text').html(window.opener.hist1_text);
+	$('#hist2-text').html(window.opener.hist2_text);
+	$('#hist3-text').html(window.opener.hist3_text);
+    $('#pzsvs-text').html(window.opener.pzsvs_text);
 }
 
 

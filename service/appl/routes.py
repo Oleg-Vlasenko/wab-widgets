@@ -272,7 +272,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     FROM arcgis.public."червоні_лінії_діпроміста" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
-    
+
     cur.execute(sql)
     rows = cur.fetchall()
 
@@ -342,6 +342,31 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     if select:
         hist[2] = True
+        
+    sql = '''
+    SELECT *
+    FROM arcgis.public."Прибережні_захисні смуги" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+    pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони або в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
+    pzsvs = []
+    for row in rows:
+        pzsvs.append(['Прибережні захисні смуги, ріш. №', row[3]+' від '+row[4].strftime('%d.%m.%Y')])
+        
+    sql = '''
+    SELECT *
+    FROM arcgis.public."Водоохоронні зони" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+
+    cur.execute(sql)
+    rows = cur.fetchall()
+    for row in rows:
+        pzsvs.append(['Водоохоронні зони, ріш. №', row[3]+' від '+row[4].strftime('%d.%m.%Y')])
         
 
     zng_lst = []
@@ -497,6 +522,8 @@ def __parcelgeom(parcel_geom=None, con=None):
     parceldata['hist_text1'] = hist_text1
     parceldata['hist_text2'] = hist_text2
     parceldata['hist_text3'] = hist_text3
+    parceldata['pzsvs'] = pzsvs
+    parceldata['pzsvs_text'] = pzsvs_text
     
     return render_template('parcel_geom.html', parceldata=parceldata)
 
@@ -529,4 +556,3 @@ def _routepatch(patch=None):
         return render_template(patch + '.html', data = data)
     except Exception as e:
         return page_not_found(404)
-
