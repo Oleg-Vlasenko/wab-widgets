@@ -205,8 +205,7 @@ body {
 <br>
 
 <!-- <h3>parceldata {{ parceldata|tojson }}</h3> -->
-<h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:$('#printform').submit()">Вивести друковану форму</a></h3>
-<h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:postpopup()">Вивести друковану форму 2</a></h3>
+<h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:postpopup()">Вивести друковану форму<a></h3>
 
 <div class="wrapper">
   
@@ -390,51 +389,75 @@ $('#pzsvs-checkbox').change(function() {
 });
 
 function postpopup() {
-    var zng_text = '';
-    $('.zng-strings:checked').each(function() {
-        // console.log($(this).attr('_prnstr'));
-        zng_text = zng_text+$(this).attr('_prnstr')+'<br>';
-    });
-    window.zng_text = zng_text;
-
-    var rl_type = $('#red_lines-checkbox').attr('_rltype');
-    var rl_text = $('#red_lines-checkbox').attr('_rlhdr');
-    if (parseInt(rl_type) < 3) {
-        $('.rl-strings-'+rl_type+':checked').each(function() {
-            rl_text = rl_text + $(this).attr('_prnstr')+'; ';
+    if ($('#zoning-checkbox:checked').length > 0) {
+        var zng_text = '';
+        $('.zng-strings:checked').each(function() {
+            // console.log($(this).attr('_prnstr'));
+            zng_text = zng_text+$(this).attr('_prnstr')+'<br>';
         });
+        window.zng_text = zng_text;
     }
-    window.rl_text = rl_text;
+    else {
+        window.zng_text = '';
+    }
+
     
-    var hist_text = $('#hist1:checked').attr('_prnstr');
-    if (hist_text) {
-        window.hist1_text = hist_text;
+    if ($('#red_lines-checkbox:checked').length > 0) {
+        var rl_type = $('#red_lines-checkbox').attr('_rltype');
+        var rl_text = $('#red_lines-checkbox').attr('_rlhdr');
+        if (parseInt(rl_type) < 3) {
+            $('.rl-strings-'+rl_type+':checked').each(function() {
+                rl_text = rl_text + $(this).attr('_prnstr')+'; ';
+            });
+        }
+        window.rl_text = rl_text;
+    }
+    else {
+        window.rl_text = '';
+    }
+    
+    if ($('#hist-checkbox:checked').length > 0) {
+        var hist_text = $('#hist1:checked').attr('_prnstr');
+        if (hist_text) {
+            window.hist1_text = hist_text;
+        }
+        else {
+            window.hist1_text = ' - ';
+        }
+        
+        hist_text = $('#hist2:checked').attr('_prnstr');
+        if (hist_text) {
+            window.hist2_text = hist_text;
+        }
+        else {
+            window.hist2_text = ' - ';
+        }
+        
+        var hist_text = $('#hist3:checked').attr('_prnstr');
+        if (hist_text) {
+            window.hist3_text = hist_text;
+        }
+        else {
+            window.hist3_text = ' - ';
+        }
     }
     else {
         window.hist1_text = ' - ';
-    }
-    
-    hist_text = $('#hist2:checked').attr('_prnstr');
-    if (hist_text) {
-        window.hist2_text = hist_text;
-    }
-    else {
         window.hist2_text = ' - ';
-    }
-    
-    var hist_text = $('#hist3:checked').attr('_prnstr');
-    if (hist_text) {
-        window.hist3_text = hist_text;
-    }
-    else {
         window.hist3_text = ' - ';
     }
     
-    var pzsvs_text = $('#pzsvs-checkbox').attr('_rlhdr');
-    $('.pzsvs-strings:checked').each(function() {
-        pzsvs_text = pzsvs_text + $(this).attr('_prnstr')+'; ';
-    });
-    window.pzsvs_text = pzsvs_text;
+    
+    if ($('#pzsvs-checkbox:checked').length > 0) {
+        var pzsvs_text = $('#pzsvs-checkbox').attr('_rlhdr');
+        $('.pzsvs-strings:checked').each(function() {
+            pzsvs_text = pzsvs_text + $(this).attr('_prnstr')+'; ';
+        });
+        window.pzsvs_text = pzsvs_text;
+    }
+    else {
+        window.pzsvs_text = '';
+    }
     
 
     window.open('/static/printform.html','printform','scrollbars=no,menubar=no,height=700,width=700,left=340, top=100,resizable=yes,toolbar=no,status=no');
