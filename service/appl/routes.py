@@ -308,20 +308,20 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."зони регулювання забудови в межах історичних ареалів" n
+    FROM arcgis.public."Історичний ареал" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
     
     cur.execute(sql)
     select = cur.fetchone()
 
-    hist = [False, False, False]
+    hist = [False, False, False, False]
     if select:
         hist[0] = True
         
     sql = '''
     SELECT *
-    FROM arcgis.public."зони охорони памяток архітектури" n
+    FROM arcgis.public."зони регулювання забудови в межах історичних ареалів" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
     
@@ -333,7 +333,7 @@ def __parcelgeom(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Зони обєктів природно_заповідного фонду" n
+    FROM arcgis.public."зони охорони памяток архітектури" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
     
@@ -345,6 +345,18 @@ def __parcelgeom(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
+    FROM arcgis.public."Зони обєктів природно_заповідного фонду" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    if select:
+        hist[3] = True
+        
+    sql = '''
+    SELECT *
     FROM arcgis.public."Прибережні_захисні смуги" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
@@ -352,7 +364,6 @@ def __parcelgeom(parcel_geom=None, con=None):
     cur.execute(sql)
     rows = cur.fetchall()
 
-    pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони або в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
     pzsvs = []
     for row in rows:
         pzsvs.append('Прибережні захисні смуги, ріш. №|'+row[3]+' від '+row[4].strftime('%d.%m.%Y'))
@@ -368,6 +379,30 @@ def __parcelgeom(parcel_geom=None, con=None):
     for row in rows:
         pzsvs.append('Водоохоронні зони, ріш. №|'+row[3]+' від '+row[4].strftime('%d.%m.%Y'))
         
+    sql = '''
+    SELECT *
+    FROM arcgis.public."Межі санітарно_захисних зон промислових" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    prot1 = False
+    if select:
+        prot1 = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."с_з_розрахункові" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+
+    prot2 = []
+    cur.execute(sql)
+    rows = cur.fetchall()
+    for row in rows:
+        prot2.append('градобоснов №|'+row[3])
 
     zng_lst = []
     zng_grp = []
@@ -501,11 +536,15 @@ def __parcelgeom(parcel_geom=None, con=None):
         hist_text1 = 'Ділянка знаходиться на території історичного ареалу'
         
     hist_text2 = ' - '
-    if hist[1]:
-        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини (або в охоронній зоні об’єкта культурної спадщини)'
+    if hist[1] and hist[2]:
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини та в охоронній зоні об’єкта культурної спадщини'
+    elif hist[1]:
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини'
+    elif hist[2]:
+        hist_text2 = 'Ділянка знаходиться в охоронній зоні об’єкта культурної спадщини'
         
     hist_text3 = ' - '
-    if hist[2]:
+    if hist[3]:
         hist_text3 = 'Ділянка знаходиться в зоні об’єктів природно-заповідного фонду'
     
     pzsvs_grp = []
@@ -517,6 +556,10 @@ def __parcelgeom(parcel_geom=None, con=None):
     for pzsvs_str in pzsvs:
         pzsvs_grp.append(pzsvs_str.split('|'))
     
+    pzsvs_text = ' - '
+    if len(pzsvs_grp) > 0:
+        pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони або в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
+
     # print(parceldata['zoning'])
     # print(parceldata['red_lines'][0])
     # print(parceldata['rl_others'][0])
