@@ -321,7 +321,7 @@ def __parcelgeom(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."зони регулювання забудови в межах історичних ареалів" n
+    FROM arcgis.public."зони охорони памяток архітектури" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
     
@@ -330,10 +330,10 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     if select:
         hist[1] = True
-        
+
     sql = '''
     SELECT *
-    FROM arcgis.public."зони охорони памяток архітектури" n
+    FROM arcgis.public."зони регулювання забудови в межах історичних ареалів_1" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
     
@@ -365,8 +365,11 @@ def __parcelgeom(parcel_geom=None, con=None):
     rows = cur.fetchall()
 
     pzsvs = []
+    pzsvs_type = [False, False]
     for row in rows:
         pzsvs.append('Прибережні захисні смуги, ріш. №|'+row[3]+' від '+row[4].strftime('%d.%m.%Y'))
+        if not pzsvs_type[0]:
+            pzsvs_type[0] = True
         
     sql = '''
     SELECT *
@@ -378,6 +381,8 @@ def __parcelgeom(parcel_geom=None, con=None):
     rows = cur.fetchall()
     for row in rows:
         pzsvs.append('Водоохоронні зони, ріш. №|'+row[3]+' від '+row[4].strftime('%d.%m.%Y'))
+        if not pzsvs_type[1]:
+            pzsvs_type[1] = True
         
     sql = '''
     SELECT *
@@ -402,7 +407,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
-        prot2.append('градобоснов №|'+str(row[4]))
+        prot2.append(str(row[4])+'|'+str(row[36])+' від '+row[35].strftime('%d.%m.%Y'))
 
     sql = '''
     SELECT *
@@ -462,47 +467,47 @@ def __parcelgeom(parcel_geom=None, con=None):
         'Г-5-2',
         'Г-6',
         'Г-ТР -1-2',
-        'Ж-1',
-        'Ж-7',
-        'ІК',
-        'ІН-1',
-        'ІН-2',
-        'ІН-3',
-        'КВТ',
-        'КЛ-2',
-        'КС-2',
-        'КС-3',
-        'КС-3-1',
-        'КС-4',
-        'КС-4-1',
-        'КС-5',
-        'КС-5-1',
-        'КС-6',
-        'П-В-5',
-        'П-В-6',
-        'П-Г-2',
-        'П-Г-3-1',
-        'П-Г-6',
-        'П-Ж-1',
-        'П-Ж-7',
-        'П-ІН-1',
-        'П-КС-3-1',
-        'П-КС-4',
-        'П-КС-5',
-        'П-КС-6',
-        'П-Р-2',
-        'П-Р-3',
-        'П-Р-3-2',
-        'П-ТР-2-1',
-        'Р-1',
-        'Р-2',
-        'Р-3',
-        'Р-3-2',
-        'Р-3-4',
-        'Р-4',
-        'С-2',
-        'С-3',
-        'С-4'
+        # 'Ж-1',
+        # 'Ж-7',
+        # 'ІК',
+        # 'ІН-1',
+        # 'ІН-2',
+        # 'ІН-3',
+        # 'КВТ',
+        # 'КЛ-2',
+        # 'КС-2',
+        # 'КС-3',
+        # 'КС-3-1',
+        # 'КС-4',
+        # 'КС-4-1',
+        # 'КС-5',
+        # 'КС-5-1',
+        # 'КС-6',
+        # 'П-В-5',
+        # 'П-В-6',
+        # 'П-Г-2',
+        # 'П-Г-3-1',
+        # 'П-Г-6',
+        # 'П-Ж-1',
+        # 'П-Ж-7',
+        # 'П-ІН-1',
+        # 'П-КС-3-1',
+        # 'П-КС-4',
+        # 'П-КС-5',
+        # 'П-КС-6',
+        # 'П-Р-2',
+        # 'П-Р-3',
+        # 'П-Р-3-2',
+        # 'П-ТР-2-1',
+        # 'Р-1',
+        # 'Р-2',
+        # 'Р-3',
+        # 'Р-3-2',
+        # 'Р-3-4',
+        # 'Р-4',
+        # 'С-2',
+        # 'С-3',
+        # 'С-4'
     ]
 
     for zng_r in zng:
@@ -525,7 +530,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     # docx links
     for idx, zng_str in enumerate(zng_grp):
         if zng_str[0] in zng_docs:
-            zng_grp[idx].append('docxlnk')
+            zng_grp[idx].append(zng_str[0])
         else:
             zng_grp[idx].append('nolnk')
 
@@ -568,12 +573,16 @@ def __parcelgeom(parcel_geom=None, con=None):
         hist_text1 = 'Ділянка знаходиться на території історичного ареалу'
         
     hist_text2 = ' - '
+    hist_text21 = ''
     if hist[1] and hist[2]:
         hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини та в охоронній зоні об’єкта культурної спадщини'
+        hist_text21 = 'Зони охорони пам’яток архітектури та регулювання забудови пам’яток'
     elif hist[1]:
-        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини'
-    elif hist[2]:
         hist_text2 = 'Ділянка знаходиться в охоронній зоні об’єкта культурної спадщини'
+        hist_text21 = 'Зони охорони пам’яток архітектури'
+    elif hist[2]:
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини'
+        hist_text21 = 'Зони регулювання забудови пам’яток'
         
     hist_text3 = ' - '
     if hist[3]:
@@ -589,19 +598,24 @@ def __parcelgeom(parcel_geom=None, con=None):
         pzsvs_grp.append(pzsvs_str.split('|'))
     
     pzsvs_text = ' - '
-    if len(pzsvs_grp) > 0:
-        pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони або в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
+    if pzsvs_type[0] and pzsvs_type[1]:
+        pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони та в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
+    elif pzsvs_type[0]:
+        pzsvs_text = 'Ділянка знаходиться в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
+    elif pzsvs_type[1]:
+        pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони затвердженою рішення міської ради: <br>'
 
     prot_grp = []
     for protr in prot2:
         prot_grp.append(protr.split('|'))
         
     prot_text = ' - '
-    # if prot1: если або растращ на 1и2/1/2, то как if rl_type == 1:
-    if prot1 or len(prot2) > 0:
-        prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах санітарно-захисної смуги або в межах розрахункової відстані'
-        if len(prot2) > 0:
-            prot_text += ': <br>'
+    if prot1 and len(prot2) > 0:
+        prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах санітарно-захисної смуги та в межах розрахункової відстані: <br>'
+    elif prot1:
+        prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах санітарно-захисної смуги'
+    elif len(prot2) > 0:
+        prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах розрахункової відстані: <br>'
         
     brd_text1 = ' - '
     if brd[0]:
@@ -629,6 +643,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     parceldata['hist'] = hist
     parceldata['hist_text1'] = hist_text1
     parceldata['hist_text2'] = hist_text2
+    parceldata['hist_text21'] = hist_text21
     parceldata['hist_text3'] = hist_text3
     parceldata['pzsvs'] = pzsvs_grp
     parceldata['pzsvs_text'] = pzsvs_text

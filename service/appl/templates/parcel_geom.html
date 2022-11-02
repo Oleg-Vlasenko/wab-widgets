@@ -225,13 +225,14 @@ body {
     <div class="row data-row">
       <div class="cell" data-title="id">
         <label class="container">&nbsp;
-            {% if row[2] == 'docxlnk' %}
-                <a href="#" onclick="window.open('https://gisserver.gapu.local/docs/В-2.htm', 
-                         'newwindow',
-                         'width=700,height=700,top=180,left=260'); 
-              return false;" target="_blank">{{ row[0] }} - {{ row[1] }}</a>
-            {% else %}
+            {% if row[2] == 'nolnk' %}
                 {{ row[0] }} - {{ row[1] }}
+            {% else %}
+                <a href="#" onclick="window.open('https://gisserver.gapu.local/docs/{{ row[2] }}.htm', 
+                    'newwindow',
+                    'width=700,height=700,top=180,left=260');
+                    return false;" 
+                target="_blank">{{ row[0] }} - {{ row[1] }}</a>
             {% endif %}
             <input type="checkbox" checked="checked" class="zng-strings" _prnstr="{{ row[3] }}"><span class="checkmark"></span>
         </label>
@@ -243,7 +244,7 @@ body {
   </div>
   {% endif %}
 
-  {% if parceldata['hist'][0] or parceldata['hist'][1] %}
+  {% if parceldata['hist'][0] or parceldata['hist'][1] or parceldata['hist'][2] or parceldata['hist'][3] %}
   <div class="table">
   
     <div class="row header blue">
@@ -270,11 +271,11 @@ body {
     </div>
     {% endif %}
 
-    {% if parceldata['hist'][1] %}
+    {% if parceldata['hist'][1] or parceldata['hist'][2] %}
     <div class="row data-row">
       <div class="cell" data-title="id">
         <label class="container">&nbsp;
-            Зони охорони пам'яток архітектури
+            {{ parceldata['hist_text21'] }}
             <input id="hist2" type="checkbox" checked="checked" _prnstr="{{ parceldata['hist_text2'] }}"><span class="checkmark"></span>
         </label>
       </div>
@@ -283,7 +284,7 @@ body {
     </div>
     {% endif %}
 
-    {% if parceldata['hist'][2] %}
+    {% if parceldata['hist'][3] %}
     <div class="row data-row">
       <div class="cell" data-title="id">
         <label class="container">&nbsp;
@@ -390,7 +391,7 @@ body {
     <div class="row header blue">
       <div class="cell">
         <label class="container">&nbsp;
-            Інші межі
+            Інші планування обмежень
             <input id="brd-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
         </label>
       </div>
