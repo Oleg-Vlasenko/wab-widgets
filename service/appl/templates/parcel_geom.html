@@ -306,7 +306,7 @@ body {
       <div class="cell cell1">
         <label class="container">&nbsp;
             Червоні лінії
-            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}" _rlhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
+            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}" _prnhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
         </label>
       </div>
       <div class="cell cell2">
@@ -334,7 +334,7 @@ body {
     <div class="row header blue">
       <div class="cell cell1">
         <label class="container">&nbsp;ПЗС та ВЗ
-            <input id="pzsvs-checkbox" type="checkbox" checked="checked" _rlhdr="{{ parceldata['pzsvs_text'] }}"><span class="checkmark header-checkmark"></span>
+            <input id="pzsvs-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span class="checkmark header-checkmark"></span>
         </label>
       </div>
       <div class="cell cell2">
@@ -354,6 +354,89 @@ body {
     </div>
     {% endfor %}
   </div>
+  {% endif %}
+ 
+  {% if parceldata['prot_text'] != ' - '  %}
+  <div class="table">
+  
+    <div class="row header blue">
+      <div class="cell cell1">
+        <label class="container">&nbsp;Санітарно-захисні зони
+            <input id="prot-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['prot_text'] }}"><span class="checkmark header-checkmark"></span>
+        </label>
+      </div>
+      <div class="cell cell2">
+      </div>
+    </div>
+
+    {% for row in parceldata['prot'] %}
+    <div class="row data-row">
+      <div class="cell cell1" data-title="id">
+        <label class="container">{{ row[0] }}
+            <input type="checkbox" checked="checked" class="prot-strings" _prnstr="{{ row[1] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+        {{ row[1] }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+ 
+  {% if parceldata['brd'][0] or parceldata['brd'][1] or parceldata['brd'][2] %}
+  <div class="table">
+  
+    <div class="row header blue">
+      <div class="cell">
+        <label class="container">&nbsp;
+            Інші межі
+            <input id="brd-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+        </label>
+      </div>
+      <div class="cell cell2">
+      </div>
+    </div>
+    
+    {% if parceldata['brd'][0] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Межі лісового господарства
+            <input id="brd1" type="checkbox" checked="checked" _prnstr="{{ parceldata['brd_text1'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
+    {% if parceldata['brd'][1] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Території, що не підлягають забудові
+            <input id="brd2" type="checkbox" checked="checked" _prnstr="{{ parceldata['brd_text2'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
+    {% if parceldata['brd'][2] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Об’єкти зеленого господарства
+            <input id="brd3" type="checkbox" checked="checked" _prnstr="{{ parceldata['brd_text3'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
   {% endif %}
  
 </div>
@@ -387,6 +470,14 @@ $('#pzsvs-checkbox').change(function() {
     $(this).parents('.table').find('.data-row').toggle() 
 });
 
+$('#prot-checkbox').change(function() { 
+    $(this).parents('.table').find('.data-row').toggle() 
+});
+
+$('#brd-checkbox').change(function() { 
+    $(this).parents('.table').find('.data-row').toggle() 
+});
+
 function postpopup() {
     if ($('#zoning-checkbox:checked').length > 0) {
         var zng_text = '';
@@ -403,7 +494,7 @@ function postpopup() {
     
     if ($('#red_lines-checkbox:checked').length > 0) {
         var rl_type = $('#red_lines-checkbox').attr('_rltype');
-        var rl_text = $('#red_lines-checkbox').attr('_rlhdr');
+        var rl_text = $('#red_lines-checkbox').attr('_prnhdr');
         if (parseInt(rl_type) < 3) {
             $('.rl-strings-'+rl_type+':checked').each(function() {
                 rl_text = rl_text + $(this).attr('_prnstr')+'; ';
@@ -448,16 +539,59 @@ function postpopup() {
     
     
     if ($('#pzsvs-checkbox:checked').length > 0) {
-        var pzsvs_text = $('#pzsvs-checkbox').attr('_rlhdr');
+        var pzsvs_text = $('#pzsvs-checkbox').attr('_prnhdr');
         $('.pzsvs-strings:checked').each(function() {
             pzsvs_text = pzsvs_text + $(this).attr('_prnstr')+'; ';
         });
         window.pzsvs_text = pzsvs_text;
     }
     else {
-        window.pzsvs_text = '';
+        window.pzsvs_text = ' - ';
     }
     
+    if ($('#prot-checkbox:checked').length > 0) {
+        var prot_text = $('#prot-checkbox').attr('_prnhdr');
+        $('.prot-strings:checked').each(function() {
+            prot_text = prot_text + $(this).attr('_prnstr')+'; ';
+        });
+        window.prot_text = prot_text;
+    }
+    else {
+        window.prot_text = ' - ';
+    }
+    
+    if ($('#brd-checkbox:checked').length > 0) {
+        var brd_text = $('#brd1:checked').attr('_prnstr');
+        if (brd_text) {
+            window.brd1_text = brd_text;
+        }
+        else {
+            window.brd1_text = ' - ';
+        }
+        
+        var brd_text = $('#brd2:checked').attr('_prnstr');
+        if (brd_text) {
+            window.brd2_text = brd_text;
+        }
+        else {
+            window.brd2_text = ' - ';
+        }
+        
+        var brd_text = $('#brd3:checked').attr('_prnstr');
+        if (brd_text) {
+            window.brd3_text = brd_text;
+        }
+        else {
+            window.brd3_text = ' - ';
+        }
+        
+    }
+    else {
+        window.brd1_text = ' - ';
+        window.brd2_text = ' - ';
+        window.brd3_text = ' - ';
+    }
+
 
     window.open('/static/printform.html','printform','scrollbars=no,menubar=no,height=700,width=700,left=340, top=100,resizable=yes,toolbar=no,status=no');
 }

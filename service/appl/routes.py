@@ -402,7 +402,45 @@ def __parcelgeom(parcel_geom=None, con=None):
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
-        prot2.append('градобоснов №|'+row[3])
+        prot2.append('градобоснов №|'+str(row[4]))
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."Межі лісового господарства" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    brd = [False, False, False]
+    if select:
+        brd[0] = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."Зони що не підлягають забудові" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    if select:
+        brd[1] = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."зелене_господарство" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+
+    if select:
+        brd[2] = True
+
 
     zng_lst = []
     zng_grp = []
@@ -520,14 +558,8 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     if rl_type == 1:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ: <br>'
-        # for rlr in rl_grp:
-            # if rlr[0] == '1':
-                # rl_text += rlr[2]+'; '
     elif rl_type == 2:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ РОЗГЛЯНУТІ НА ЗАСІДАННІ АРХІТЕКТУРНО-МІСТОБУДІВНОЇ РАДИ: <br>'
-        # for rlr in rl_grp:
-            # if rlr[0] == '2':
-                # rl_text += rlr[2]+'; '
     elif rl_type == 3:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗА МАТЕРІАЛАМИ ДП НАУКОВО-ДОСЛІДНОГО ІНСТИТУТА ПРОЕКТУВАННЯ МІСТ ІМ. Ю.М. БІЛОКОНЯ'
         
@@ -546,7 +578,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     hist_text3 = ' - '
     if hist[3]:
         hist_text3 = 'Ділянка знаходиться в зоні об’єктів природно-заповідного фонду'
-    
+        
     pzsvs_grp = []
     # group
     pzsvs = list(set(pzsvs))
@@ -559,6 +591,30 @@ def __parcelgeom(parcel_geom=None, con=None):
     pzsvs_text = ' - '
     if len(pzsvs_grp) > 0:
         pzsvs_text = 'Ділянка знаходиться в межах водоохоронної зони або в межах природно-захисної смуги затвердженою рішення міської ради: <br>'
+
+    prot_grp = []
+    for protr in prot2:
+        prot_grp.append(protr.split('|'))
+        
+    prot_text = ' - '
+    # if prot1: если або растращ на 1и2/1/2, то как if rl_type == 1:
+    if prot1 or len(prot2) > 0:
+        prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах санітарно-захисної смуги або в межах розрахункової відстані'
+        if len(prot2) > 0:
+            prot_text += ': <br>'
+        
+    brd_text1 = ' - '
+    if brd[0]:
+        brd_text1 = 'Ділянка знаходиться в межах лісового господарства'
+    
+    brd_text2 = ' - '
+    if brd[1]:
+        brd_text2 = 'Ділянка знаходиться в межах території, яка не підлягає забудові'
+    
+    brd_text3 = ' - '
+    if brd[2]:
+        brd_text3 = 'Ділянка знаходиться в межах об’єкта зеленого господарства'
+    
 
     # print(parceldata['zoning'])
     # print(parceldata['red_lines'][0])
@@ -576,6 +632,12 @@ def __parcelgeom(parcel_geom=None, con=None):
     parceldata['hist_text3'] = hist_text3
     parceldata['pzsvs'] = pzsvs_grp
     parceldata['pzsvs_text'] = pzsvs_text
+    parceldata['prot'] = prot_grp
+    parceldata['prot_text'] = prot_text
+    parceldata['brd'] = brd
+    parceldata['brd_text1'] = brd_text1
+    parceldata['brd_text2'] = brd_text2
+    parceldata['brd_text3'] = brd_text3
     
     return render_template('parcel_geom.html', parceldata=parceldata)
 

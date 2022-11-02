@@ -438,8 +438,8 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:5.15pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p>&nbsp;</o:p></span></p>
+  justify;line-height:normal'><span id="prot-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:15;height:15.9pt'>
@@ -457,8 +457,8 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:15.9pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p>&nbsp;</o:p></span></p>
+  justify;line-height:normal'><span id="brd1-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:16;height:9.75pt'>
@@ -476,8 +476,27 @@ normal'><b style='mso-bidi-font-weight:normal'><span lang=UK style='font-size:
   mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
   mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:9.75pt'>
   <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
-  justify;line-height:normal'><span lang=UK style='font-size:12.0pt;font-family:
-  "Times New Roman",serif;mso-ansi-language:UK'><o:p>&nbsp;</o:p></span></p>
+  justify;line-height:normal'><span id="brd2-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:16;height:9.75pt'>
+  <td width=283 valign=top style='width:212.4pt;border:solid windowtext 1.0pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
+  padding:0cm 5.4pt 0cm 5.4pt;height:9.75pt'>
+  <p class=MsoListParagraph style='margin-top:0cm;margin-right:0cm;margin-bottom:
+  0cm;margin-left:1.45pt;margin-bottom:.0001pt;mso-add-space:auto;text-indent:
+  -1.45pt;line-height:normal'><span lang=UK style='font-size:13.0pt;font-family:
+  "Times New Roman",serif;color:black;mso-themecolor:text1;mso-ansi-language:
+  UK'>-об’єкти зеленого господарства:<o:p></o:p></span></p>
+  </td>
+  <td width=350 valign=top style='width:262.25pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt;height:9.75pt'>
+  <p class=MsoNormal style='margin-bottom:0cm;margin-bottom:.0001pt;text-align:
+  justify;line-height:normal'><span id="brd3-text" lang=UK style='font-size:12.0pt;font-family:
+  "Times New Roman",serif;mso-ansi-language:UK'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:17;height:16.5pt'>
@@ -860,10 +879,14 @@ if ( window.opener != null ) {
 	$('#hist2-text').html(window.opener.hist2_text);
 	$('#hist3-text').html(window.opener.hist3_text);
     $('#pzsvs-text').html(window.opener.pzsvs_text);
+    $('#prot-text').html(window.opener.prot_text);
+    $('#brd1-text').html(window.opener.brd1_text);
+    $('#brd2-text').html(window.opener.brd2_text);
+    $('#brd3-text').html(window.opener.brd3_text);
 }
 
 
-function Export2Doc(element, filename = 'Протокол нов'){
+function Export2Doc(element, filename = 'Протокол нов') {
   // $('#tst-output1').text('Test data1 to MSWord');
   // return '';
 
