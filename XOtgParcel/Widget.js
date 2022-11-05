@@ -118,7 +118,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 //}
                 },
              startDraw: function () {
-                    this.map.graphics.clear();
+                this.map.graphics.clear();
              },
 
 
@@ -142,7 +142,26 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             _onBtnClearClick: function () {
                 this.map.graphics.clear();
                 dom.byId('message').innerHTML = "";
-                //console.log('clear');
+                
+                // var map = this.map;
+                // var srMap = map.extent.spatialReference;
+                
+                  // var myPolygon = {"geometry":{"rings":[[[59536.878738427935,27053.246601985968],[59565.98296330305,27041.075744310918],[59555.002733009256,27020.570494967087],[59531.58706117791,27030.360097879624],[59536.878738427935,27053.246601985968]]],
+                    // "spatialReference":srMap},
+                    // "symbol":{"color":[0,0,0,64],"outline":{"color":[0,0,0,255],
+                    // "width":1,"type":"esriSLS","style":"esriSLSSolid"},
+                    // "type":"esriSFS","style":"esriSFSSolid"}};
+                  
+                  // var gra = new Graphic(myPolygon);
+                
+                    // map.graphics.add(gra);
+                    // try {
+                      // var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
+                      // map.setExtent(extent);
+                    // } catch (err) {
+                      // console.log(err)
+                    // }
+                
             },
 
             /*
