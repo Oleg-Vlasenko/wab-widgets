@@ -1,0 +1,7 @@
+{
+	"configText": "Параметр..",
+	"UrlParcelService": "http://192.168.0.115:5020/parcelgeom/",
+	"UrlGeometryService": "http://192.168.0.115:6080/arcgis/rest/services/Geometry/GeometryServer",
+	"esriGeometryService": "//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer"
+
+}
