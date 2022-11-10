@@ -40,3 +40,6 @@
     text-overflow: ellipsis;
 }
 
+.mg-search-res:hover {
+    cursor: default;
+}
