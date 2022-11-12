@@ -141,40 +141,76 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.graphics.clear();
                 dom.byId('message').innerHTML = "";
                 
-                // var map = this.map;
-                // var srMap = map.extent.spatialReference;
-                
-                  // var myPolygon = {"geometry":{"rings":[[[59536.878738427935,27053.246601985968],[59565.98296330305,27041.075744310918],[59555.002733009256,27020.570494967087],[59531.58706117791,27030.360097879624],[59536.878738427935,27053.246601985968]]],
-                    // "spatialReference":srMap},
-                    // "symbol":{"color":[0,0,0,64],"outline":{"color":[0,0,0,255],
-                    // "width":1,"type":"esriSLS","style":"esriSLSSolid"},
-                    // "type":"esriSFS","style":"esriSFSSolid"}};
-                  
-                  // var gra = new Graphic(myPolygon);
-                
-                    // map.graphics.add(gra);
-                    // try {
-                      // var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
-                      // map.setExtent(extent);
-                    // } catch (err) {
-                      // console.log(err)
-                    // }
-                
             },
+            
+            _onBtnFindClick: function() {
+                console.log('find parcel');
+                
+                var template = document.getElementById('mg-lines-template');
+                var container = document.getElementById('mg-srch-results');
+                var __mg_map = this.map;
+                var __mg_tst_data = [
+                    {
+                        'txt': 'Бульвари вул.Чкалова,  Вознесенська(ХХІІ партз`їзду), вул. Бородинської.(№41/22 від 08.12.04)',
+                        'coords': [[[59034.47754263218,26213.62434716835],[59050.85873135619,26232.896410425023],[59150.10951547489,26147.458867687656],[59135.334315897315,26128.18680443098],[59034.47754263218,26213.62434716835]]]
+                    },
+                    {
+                        'txt': 'Бульвар по вул. Новоорловській.(№41/22 від 08.12.04)',
+                        'coords': [[[54576.41033215127,26277.420703490327],[54726.41576310941,26392.208502629877],[54748.590485549306,26367.425399023454],[54598.58503744799,26250.028834574798],[54576.41033215127,26277.420703490327]]]
+                    },
+                    {
+                        'txt': 'Бульвари вул. Чкалова, ХХІІ партз`їзду), вул. Бородинської.  (№41/22 від 08.12.04)',
+                        'coords': [[[59404.12498263973,25899.081432196876],[59420.45338754865,25922.089673769176],[59570.3777313209,25795.175996649134],[59565.18233988903,25787.011777114014],[59634.94912034327,25729.8635502933],[59623.07392768244,25714.277307381806],[59404.12498263973,25899.081432196876]]]
 
-            /*
-            _onDrawEnd: function (graphic, geotype, commontype) {
-            //jshint unused: false
-            this.drawBox.clear();
-            if (!graphic.symbol) { //not draw and save graphic that has null symbol.
-                return;
-            }
+                    },
+                    {
+                        'txt': 'Зелена зона в районі вул. Шолом-Алейхема (перед лікарнею №10). (№41/22 від 08.12.04)',
+                        'coords': [[[60053.71653752333,26687.390254720896],[60071.93298812618,26690.33722786684],[60082.112790018065,26632.74151332398],[60065.23576943826,26630.0624445808],[60053.71653752333,26687.390254720896]]]
+                    },
+                    {
+                        'txt': 'Сквер по Успенській площі(Дем`яна Бєдного). (№41/22 від 08.12.04)',
+                        'coords': [[[60230.79128832283,26709.359083067666],[60397.75323273204,26737.02037639341],[60409.406404220645,26689.33653157908],[60238.49311381437,26662.81369911889],[60230.79128832283,26709.359083067666]]]
+                    }
+                ];
+                
+                var onCoordsClick =  function() {
+                    __mg_map.graphics.clear();
+                    var srMap = __mg_map.extent.spatialReference;
+                    var coord_idx = this.getAttribute('mg-coord-idx');
+                    console.log('coords');
+                    
+                    var myPolygon = {'geometry':{'rings': __mg_tst_data[coord_idx].coords,
+                        'spatialReference':srMap},
+                        'symbol':{'color':[0,0,0,64],'outline':{'color':[0,0,0,255],
+                        'width':1,'type':'esriSLS','style':'esriSLSSolid'},
+                        'type':'esriSFS','style':'esriSFSSolid'}};
+                      
+                      var gra = new Graphic(myPolygon);
+                    
+                        __mg_map.graphics.add(gra);
+                        try {
+                          var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
+                          __mg_map.setExtent(extent);
+                        } catch (err) {
+                          console.log(err)
+                        }
+                    
+                };
 
-            var geometry = graphic.geometry;
-            console.log(geometry);
-
-             },
-            */
+                container.innerHTML = '';
+                var tmpl_block = template.querySelector('span');
+                for (var i1=0; i1 < __mg_tst_data.length; i1++) {
+                    clone = tmpl_block.cloneNode(true);
+                    res_name = clone.querySelector('.mg-search-txt');
+                    res_name.innerText = __mg_tst_data[i1].txt;
+                    res_coords = clone.querySelector('.mg-search-coords');
+                    res_coords.setAttribute('mg-coord-idx', i1.toString());
+                    res_coords.addEventListener('click', onCoordsClick);
+                    container.appendChild(clone);
+                }
+                
+                // container.innerHTML = '';
+            },
 
             addToMap: function (evt) {
 
@@ -213,42 +249,16 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.graphics.add(graphic);
 
                 geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}'
-                //geojson = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
-                //    ',"crs":{"type":"name","properties":{"name":"ESRI:' + graphic.geometry.spatialReference.wkid + '"}'
-                //geojson3857 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
-                //    ',"crs":{"type":"name","properties":{"name":"EPSG:3857"}'
 
                 console.log(geojson0)
                 // select st_geomfromgeojson(geojson) 
                 dom.byId('message').innerHTML = geojson0;
                 showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
-                //showPopUp(this._urlParcelService + geojson0);
-                //showPopUp('http://192.168.0.115:5020/parcel/2323981500010010105');
                 
                 window.__mg_drawtoolbar.deactivate();
                 this.map.setInfoWindowOnClick(true);
             },
-            /*
-            _showPopUp: function (url, parameters) {
-                popUpObj = window.open(url,
-                    "ModalPopUp",
-                    "popup=yes," +
-                    "toolbar=no," +
-                    "scrollbars=no," +
-                    "location=no," +
-                    "statusbar=no," +
-                    "menubar=no," +
-                    "resizable=0," +
-                    "width=800," +
-                    "height=600," +
-                    "left = 490," +
-                    "top=100");
-
-                popUpObj.focus();
-
-            },
-            */
-
+            
           startup: function () {
             this.inherited(arguments);
             //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
@@ -268,11 +278,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             });
 
             var message = document.getElementById("message");
-            //var messagestatus = document.getElementById("messagestatus");
-            //var messageaddstatus = document.getElementById("messageaddstatus");
 
-            //var redsym = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 0.5]), 3);
-            //var redsymdd = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT, new Color([255, 0, 0, 0.5]), 3);
             var sfsPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
               new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
                 new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
@@ -282,7 +288,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             //this.drawtoolbar.on("draw-start", this.startDraw)
 
           },
-
+          
 
       // onOpen: function(){
       //   console.log('onOpen');
@@ -322,3 +328,20 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
     });
   });
+  
+function Test1() {
+// MULTIPOLYGON (((54576.41033215127 26277.420703490327, 54726.41576310941 26392.208502629877, 54748.590485549306 26367.425399023454, 54598.58503744799 26250.028834574798, 54576.41033215127 26277.420703490327)))
+// MULTIPOLYGON (((59404.12498263973 25899.081432196876, 59420.45338754865 25922.089673769176, 59570.3777313209 25795.175996649134, 59565.18233988903 25787.011777114014, 59634.94912034327 25729.8635502933, 59623.07392768244 25714.277307381806, 59404.12498263973 25899.081432196876)))
+// MULTIPOLYGON (((60053.71653752333 26687.390254720896, 60071.93298812618 26690.33722786684, 60082.112790018065 26632.74151332398, 60065.23576943826 26630.0624445808, 60053.71653752333 26687.390254720896)))
+// MULTIPOLYGON (((60230.79128832283 26709.359083067666, 60397.75323273204 26737.02037639341, 60409.406404220645 26689.33653157908, 60238.49311381437 26662.81369911889, 60230.79128832283 26709.359083067666)))
+
+    str1 = 'MULTIPOLYGON (((60230.79128832283 26709.359083067666, 60397.75323273204 26737.02037639341, 60409.406404220645 26689.33653157908, 60238.49311381437 26662.81369911889, 60230.79128832283 26709.359083067666)))';
+    str1 =  str1.replace('MULTIPOLYGON (((', '');
+    str1 =  str1.replace(')))', '');
+
+    str1 =  str1.split(', ');
+    for (var i1=0; i1 < str1.length; i1++) {
+        console.log(str1[i1].replace(' ', ','));
+    }
+}   
+ 

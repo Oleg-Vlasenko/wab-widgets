@@ -13,89 +13,35 @@
             <input class="jimu-input" type="text" value="" />
         </span>
     </div>
-    <div class="jimu-btn">Поиск</div>
-
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
-    </div>
-    <div class="seperator"></div>
-    <div>
-        <h3>
-            <span class="jimu-icon jimu-icon-search" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-            <span class="mg-search-res" style="display: inline-block; width: 80% !important;">link</span>&nbsp;&nbsp;
-            <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-        </h3>
+    <div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnFindClick">
+        Поиск
     </div>
 
+    <span id="mg-srch-results"></span>
+
+    <span id="mg-lines-template" style="display:none;">
+        <span style="display: table-row; margin: 14px 0 0 0;">
+            <div class="seperator"></div>
+            <div>
+                <span style="display: table-cell; vertical-align: middle;">
+                    <span class="jimu-icon jimu-icon-search mg-search-coords" title="Найти на карте" style="margin: 0 10px 0 0; position: relative; top: 3px;"></span>
+                </span>
+                <h3 class="mg-search-txt" style="display: table-cell; width: 80% !important;">link</h3>
+                <span style="display: table-cell; vertical-align: middle;">
+                    <span class="jimu-icon jimu-icon-folder-open" title="Открыть данные по слоям" style="margin: 0 0 0 10px;"></span>
+                </span>
+            </div>
+        </span>
+    </span>
+    
+    <span id="mg-lines-template-2" style="display:none;">
+        <span>
+            <div class="seperator"></div>
+            <div>
+                <span class="jimu-icon jimu-icon-search mg-search-coords" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
+                <h3 class="mg-search-txt" style="display: inline-block; width: 80% !important;">link</h3>
+                <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
+            </div>
+        </span>
+    </span>
 </div>
-
-
