@@ -1,6 +1,4 @@
-﻿
-
-<div>
+﻿<div>
 
 	<h2>Это тестовый виджет!</h2>
 	<h4 style="margin-bottom: 14px;">Кабинет рукводителя в виджете с желтым человечком</h4>
@@ -10,11 +8,14 @@
     </div>
 	<div style="margin-bottom: 12px;">
         <span class="input">
-            <input class="jimu-input" type="text" value="" />
+            <input id="mg-req-val" class="jimu-input" type="text" value="" />
         </span>
     </div>
     <div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnFindClick">
         Поиск
+    </div>
+    <div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnJsonClick">
+        JSON
     </div>
 
     <span id="mg-srch-results"></span>
@@ -28,20 +29,10 @@
                 </span>
                 <h3 class="mg-search-txt" style="display: table-cell; width: 80% !important;">link</h3>
                 <span style="display: table-cell; vertical-align: middle;">
-                    <span class="jimu-icon jimu-icon-folder-open" title="Открыть данные по слоям" style="margin: 0 0 0 10px;"></span>
+                    <span class="jimu-icon jimu-icon-folder-open mg-search-coords2" title="Открыть данные по слоям" style="margin: 0 0 0 10px;"></span>
                 </span>
             </div>
         </span>
     </span>
-    
-    <span id="mg-lines-template-2" style="display:none;">
-        <span>
-            <div class="seperator"></div>
-            <div>
-                <span class="jimu-icon jimu-icon-search mg-search-coords" title="найти на карте" style="margin: 5px 10px 0 0; position: relative; top: 3px;"></span>
-                <h3 class="mg-search-txt" style="display: inline-block; width: 80% !important;">link</h3>
-                <span class="jimu-icon jimu-icon-folder-open" title="открыть данные по слоям" style="margin: 5px 0 0 10px;"></span>
-            </div>
-        </span>
-    </span>
+
 </div>

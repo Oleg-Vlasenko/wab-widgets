@@ -197,19 +197,63 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     
                 };
 
+                var onCoords2Click =  function() {
+                    function showPopUp2(url, parameters) {
+                        popUpObj = window.open(url,
+                            "ModalPopUp",
+                            "popup=yes," +
+                            "toolbar=no," +
+                            "scrollbars=no," +
+                            "location=no," +
+                            "statusbar=no," +
+                            "menubar=no," +
+                            "resizable=0," +
+                            "width=700," +
+                            "height=500," +
+                            "left = 490," +
+                            "top=100");
+
+                        // popUpObj.focus();
+                    }
+
+                    var coord_idx = this.getAttribute('mg-coord-idx');
+                    geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_tst_data[coord_idx].coords) + '}';
+                    showPopUp2('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+                };
+
                 container.innerHTML = '';
                 var tmpl_block = template.querySelector('span');
                 for (var i1=0; i1 < __mg_tst_data.length; i1++) {
                     clone = tmpl_block.cloneNode(true);
                     res_name = clone.querySelector('.mg-search-txt');
-                    res_name.innerText = __mg_tst_data[i1].txt;
+                    res_name.innerText = __mg_tst_data[i1].txt; 
                     res_coords = clone.querySelector('.mg-search-coords');
                     res_coords.setAttribute('mg-coord-idx', i1.toString());
                     res_coords.addEventListener('click', onCoordsClick);
+                    res_coords2 = clone.querySelector('.mg-search-coords2');
+                    res_coords2.setAttribute('mg-coord-idx', i1.toString());
+                    res_coords2.addEventListener('click', onCoords2Click);
                     container.appendChild(clone);
                 }
-                
                 // container.innerHTML = '';
+            },
+            
+            _onBtnJsonClick: function() {
+                var req_val = document.getElementById('mg-req-val').value;
+                if (!req_val.length) {
+                    alert('Пустой запрос!');
+                    return;
+                }
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/');
+                form_data = new FormData();
+                form_data.append('req_val', req_val);
+                xhr.send(form_data);
+
+                xhr.onload = function() {
+                };
+
+                xhr.onerror = function() {};                
             },
 
             addToMap: function (evt) {

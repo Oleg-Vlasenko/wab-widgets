@@ -16,6 +16,7 @@ from appl.models import Users
 from flask_login import logout_user
 from flask_login import login_required
 from flask import request
+from flask import jsonify
 from werkzeug.urls import url_parse
 
 #from flask import url_for, request, Response, render_template, abort, redirect, send_from_directory, flash
@@ -658,17 +659,35 @@ def __parcelgeom(parcel_geom=None, con=None):
 
 @app.route('/printform', methods=['GET','POST'])
 def __printform():
-    print('printform:')
-    print(request)
-    print(request.form)
-    return 'prnform'
-    
-    printdata = {'zng_text': request.form['zng_text'], 'rl_text': request.form['rl_text'], 'hist_text1': request.form['hist_text1'], 'hist_text2': request.form['hist_text2'], 'hist_text3': request.form['hist_text3']}
+    # перенесен в статический html, который заполняет себя своим скриптом через данные вызвавшего окна window.opener
     return render_template('printform.html', printdata=printdata)
 
-@app.route('/printform2', methods=['POST'])
-def __printform2():
-    return render_template('printform2.html')
+@app.route('/find_geom/<find_val>', methods=['GET'])
+def __find_geom(find_val):
+    con = psycopg2.connect(connstring)
+    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    sql = '''
+        SELECT
+            ST_AsGeoJSON(geom) as geojson,
+            str,
+            zak,
+            kodokpo
+        FROM
+            arcgis.public."XML" x
+        WHERE
+            x.kodokpo like '%{okpo}%'
+        LIMIT 5
+        '''.format(okpo=find_val)
+    
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+    for row in rows:
+        print(row)
+        
+    return jsonify(rows)
+    # return 'flask find == '+find_val
 
 @app.errorhandler(404)
 def page_not_found(error):
