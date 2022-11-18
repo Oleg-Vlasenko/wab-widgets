@@ -687,7 +687,6 @@ def __find_geom(find_val):
         print(row)
         
     return jsonify(rows)
-    # return 'flask find == '+find_val
 
 @app.errorhandler(404)
 def page_not_found(error):
