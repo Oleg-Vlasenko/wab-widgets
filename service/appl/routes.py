@@ -677,7 +677,7 @@ def __find_geom(find_val):
             arcgis.public."XML" x
         WHERE
             x.kodokpo like '%{okpo}%'
-        LIMIT 5
+        LIMIT 20
         '''.format(okpo=find_val)
     
     cur.execute(sql)

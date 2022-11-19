@@ -143,128 +143,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 
             },
             
-            _onBtnFindClick: function() {
-                console.log('find parcel');
-                
-                var template = document.getElementById('mg-lines-template');
-                var container = document.getElementById('mg-srch-results');
-                var __mg_map = this.map;
-                var __mg_search_res = [
-                    {
-                        'txt': 'Бульвари вул.Чкалова,  Вознесенська(ХХІІ партз`їзду), вул. Бородинської.(№41/22 від 08.12.04)',
-                        'coords': [[[59034.47754263218,26213.62434716835],[59050.85873135619,26232.896410425023],[59150.10951547489,26147.458867687656],[59135.334315897315,26128.18680443098],[59034.47754263218,26213.62434716835]]]
-                    },
-                    {
-                        'txt': 'Бульвар по вул. Новоорловській.(№41/22 від 08.12.04)',
-                        'coords': [[[54576.41033215127,26277.420703490327],[54726.41576310941,26392.208502629877],[54748.590485549306,26367.425399023454],[54598.58503744799,26250.028834574798],[54576.41033215127,26277.420703490327]]]
-                    },
-                    {
-                        'txt': 'Бульвари вул. Чкалова, ХХІІ партз`їзду), вул. Бородинської.  (№41/22 від 08.12.04)',
-                        'coords': [[[59404.12498263973,25899.081432196876],[59420.45338754865,25922.089673769176],[59570.3777313209,25795.175996649134],[59565.18233988903,25787.011777114014],[59634.94912034327,25729.8635502933],[59623.07392768244,25714.277307381806],[59404.12498263973,25899.081432196876]]]
-
-                    },
-                    {
-                        'txt': 'Зелена зона в районі вул. Шолом-Алейхема (перед лікарнею №10). (№41/22 від 08.12.04)',
-                        'coords': [[[60053.71653752333,26687.390254720896],[60071.93298812618,26690.33722786684],[60082.112790018065,26632.74151332398],[60065.23576943826,26630.0624445808],[60053.71653752333,26687.390254720896]]]
-                    },
-                    {
-                        'txt': 'Сквер по Успенській площі(Дем`яна Бєдного). (№41/22 від 08.12.04)',
-                        'coords': [[[60230.79128832283,26709.359083067666],[60397.75323273204,26737.02037639341],[60409.406404220645,26689.33653157908],[60238.49311381437,26662.81369911889],[60230.79128832283,26709.359083067666]]]
-                    }
-                ];
-                
-                var onCoordsClick =  function() {
-                    __mg_map.graphics.clear();
-                    var srMap = __mg_map.extent.spatialReference;
-                    var coord_idx = this.getAttribute('mg-coord-idx');
-                    console.log('coords');
-                    
-                    var myPolygon = {'geometry':{'rings': __mg_search_res[coord_idx].coords,
-                        'spatialReference':srMap},
-                        'symbol':{'color':[0,0,0,64],'outline':{'color':[0,0,0,255],
-                        'width':1,'type':'esriSLS','style':'esriSLSSolid'},
-                        'type':'esriSFS','style':'esriSFSSolid'}};
-                      
-                      var gra = new Graphic(myPolygon);
-                    
-                        __mg_map.graphics.add(gra);
-                        try {
-                          var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
-                          __mg_map.setExtent(extent);
-                        } 
-                        catch(err) {
-                          console.log(err);
-                        }
-                    
-                };
-
-                var onCoords2Click =  function() {
-                    function showPopUp2(url, parameters) {
-                        popUpObj = window.open(url,
-                            "ModalPopUp",
-                            "popup=yes," +
-                            "toolbar=no," +
-                            "scrollbars=no," +
-                            "location=no," +
-                            "statusbar=no," +
-                            "menubar=no," +
-                            "resizable=0," +
-                            "width=700," +
-                            "height=500," +
-                            "left = 490," +
-                            "top=100");
-
-                        // popUpObj.focus();
-                    }
-
-                    var coord_idx = this.getAttribute('mg-coord-idx');
-                    geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
-                    showPopUp2('http://192.168.17.45:5024/parcelgeom/' + geojson0);
-                };
-
-                container.innerHTML = '';
-                var tmpl_block = template.querySelector('span');
-                for (var i1=0; i1 < __mg_search_res.length; i1++) {
-                    clone = tmpl_block.cloneNode(true);
-                    res_name = clone.querySelector('.mg-search-txt');
-                    res_name.innerText = __mg_search_res[i1].txt; 
-                    res_coords = clone.querySelector('.mg-search-coords');
-                    res_coords.setAttribute('mg-coord-idx', i1.toString());
-                    res_coords.addEventListener('click', onCoordsClick);
-                    res_coords2 = clone.querySelector('.mg-search-coords2');
-                    res_coords2.setAttribute('mg-coord-idx', i1.toString());
-                    res_coords2.addEventListener('click', onCoords2Click);
-                    container.appendChild(clone);
-                }
-                // container.innerHTML = '';
-            },
-            
             _onBtnJsonClick: function() {
-
-                var __mg_search_res_2 = [
-                    {
-                        'txt': 'Бульвари вул.Чкалова,  Вознесенська(ХХІІ партз`їзду), вул. Бородинської.(№41/22 від 08.12.04)',
-                        'coords': [[[59034.47754263218,26213.62434716835],[59050.85873135619,26232.896410425023],[59150.10951547489,26147.458867687656],[59135.334315897315,26128.18680443098],[59034.47754263218,26213.62434716835]]]
-                    },
-                    {
-                        'txt': 'Бульвар по вул. Новоорловській.(№41/22 від 08.12.04)',
-                        'coords': [[[54576.41033215127,26277.420703490327],[54726.41576310941,26392.208502629877],[54748.590485549306,26367.425399023454],[54598.58503744799,26250.028834574798],[54576.41033215127,26277.420703490327]]]
-                    },
-                    {
-                        'txt': 'Бульвари вул. Чкалова, ХХІІ партз`їзду), вул. Бородинської.  (№41/22 від 08.12.04)',
-                        'coords': [[[59404.12498263973,25899.081432196876],[59420.45338754865,25922.089673769176],[59570.3777313209,25795.175996649134],[59565.18233988903,25787.011777114014],[59634.94912034327,25729.8635502933],[59623.07392768244,25714.277307381806],[59404.12498263973,25899.081432196876]]]
-
-                    },
-                    {
-                        'txt': 'Зелена зона в районі вул. Шолом-Алейхема (перед лікарнею №10). (№41/22 від 08.12.04)',
-                        'coords': [[[60053.71653752333,26687.390254720896],[60071.93298812618,26690.33722786684],[60082.112790018065,26632.74151332398],[60065.23576943826,26630.0624445808],[60053.71653752333,26687.390254720896]]]
-                    },
-                    {
-                        'txt': 'Сквер по Успенській площі(Дем`яна Бєдного). (№41/22 від 08.12.04)',
-                        'coords': [[[60230.79128832283,26709.359083067666],[60397.75323273204,26737.02037639341],[60409.406404220645,26689.33653157908],[60238.49311381437,26662.81369911889],[60230.79128832283,26709.359083067666]]]
-                    }
-                ];
-                
+                // console.log('_onBtnJsonClick');
                 var template = document.getElementById('mg-lines-template');
                 var container = document.getElementById('mg-srch-results');
                 var __mg_map = this.map;
@@ -274,11 +154,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     __mg_map.graphics.clear();
                     var srMap = __mg_map.extent.spatialReference;
                     var coord_idx = this.getAttribute('mg-coord-idx');
-                    console.log('coords');
-                    console.log(String(__mg_search_res[coord_idx].coords));
-                    console.log(String(__mg_search_res_2[coord_idx].coords));
-                    console.log(__mg_search_res[coord_idx].coords);
-                    console.log(__mg_search_res_2[coord_idx].coords);
                     
                     var myPolygon = {'geometry':{'rings': __mg_search_res[coord_idx].coords,
                         'spatialReference':srMap},
@@ -299,53 +174,50 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     
                 };
 
-                var onCoords2Click =  function() {
-                    // function showPopUp2(url, parameters) {
-                        // popUpObj = window.open(url,
-                            // "ModalPopUp",
-                            // "popup=yes," +
-                            // "toolbar=no," +
-                            // "scrollbars=no," +
-                            // "location=no," +
-                            // "statusbar=no," +
-                            // "menubar=no," +
-                            // "resizable=0," +
-                            // "width=700," +
-                            // "height=500," +
-                            // "left = 490," +
-                            // "top=100");
-                    // }
+                var onRunProtClick =  function() {
+                    function showPopUp(url, parameters) {
+                        popUpObj = window.open(url,
+                            "ModalPopUp",
+                            "popup=yes," +
+                            "toolbar=no," +
+                            "scrollbars=no," +
+                            "location=no," +
+                            "statusbar=no," +
+                            "menubar=no," +
+                            "resizable=0," +
+                            "width=700," +
+                            "height=500," +
+                            "left = 490," +
+                            "top=100");
+                    }
 
-                    // var coord_idx = this.getAttribute('mg-coord-idx');
-                    // geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
-                    // showPopUp2('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+                    var coord_idx = this.getAttribute('mg-coord-idx');
+                    geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
+                    showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
                 };
 
                 var req_val = document.getElementById('mg-req-val').value;
                 if (!req_val.length) {
-                    alert('Пустой запрос!');
+                    alert('Порожній запит!');
                     return;
                 }
+                
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_val=' + req_val);
-                form_data = new FormData();
-                // form_data.append('req_val', req_val);
-                xhr.send(form_data);
+                xhr.send();
+                // form_data = new FormData();
+                // xhr.send(form_data);
 
-                console.log('xhr.response');
                 xhr.onload = function() {
                     try {
                         var res = JSON.parse(xhr.response);
                     } 
                     catch(err) {
                         console.log('JSON parse error');
-                        console.log(e);
+                        console.log(err);
                         return;
                     }
-                    console.log(res);
 
-                    container.innerHTML = '';
-                    var tmpl_block = template.querySelector('span');
                     for (i1=0; i1<res.length; i1++) {
                         try {
                             coords = JSON.parse(res[i1][0]);
@@ -360,6 +232,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         __mg_search_res.push(sr_res);
                     }
                     
+                    container.innerHTML = '';
+                    var tmpl_block = template.querySelector('span');
                     for (i1=0; i1<__mg_search_res.length; i1++) {
                         clone = tmpl_block.cloneNode(true);
                         res_name = clone.querySelector('.mg-search-txt');
@@ -367,12 +241,11 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         res_coords = clone.querySelector('.mg-search-coords');
                         res_coords.setAttribute('mg-coord-idx', i1.toString());
                         res_coords.addEventListener('click', onCoordsClick);
-                        res_coords2 = clone.querySelector('.mg-search-coords2');
-                        res_coords2.setAttribute('mg-coord-idx', i1.toString());
-                        res_coords2.addEventListener('click', onCoords2Click);
+                        res_run_prot = clone.querySelector('.mg-run-prot');
+                        res_run_prot.setAttribute('mg-coord-idx', i1.toString());
+                        res_run_prot.addEventListener('click', onRunProtClick);
                         container.appendChild(clone);
                     };
-                    
                     console.log(__mg_search_res);
                 };
 
