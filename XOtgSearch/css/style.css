@@ -41,6 +41,15 @@
     text-overflow: ellipsis;
 }
 
+.mg-search-txt {
+    margin-top: 4px;
+}
+
 .mg-search-res:hover {
     cursor: default;
+}
+
+.mg-search-block-selected {
+    color: #032a82;
+    font-size: 14px;
 }

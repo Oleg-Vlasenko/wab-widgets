@@ -149,8 +149,34 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 var container = document.getElementById('mg-srch-results');
                 var __mg_map = this.map;
                 var __mg_search_res = [];
+                
+                var highlightResStr = function(elt) {
+                    // console.log(this);
+                    // console.log(elt);
 
-                var onCoordsClick =  function() {
+                    var selected_blocks = document.getElementsByClassName('mg-search-block-selected');
+                    for (i1=0; i1<selected_blocks.length; i1++) {
+                        selected_blocks[i1].classList.remove('mg-search-block-selected');
+                    }
+
+                    var block = elt.closest('.mg-search-block');
+                    // console.log(block);
+                    block.classList.add('mg-search-block-selected');
+                    
+                    // разделители
+                    // temp1.nextSibling
+
+                    
+                    // + набить стили
+                    // повесить на поиск и открытие 
+                };
+
+                var onCoordsClick = function() {
+                    window.__mg_test1 = this;
+                    console.log(window.__mg_test1);
+                    return;
+                    
+                    
                     __mg_map.graphics.clear();
                     var srMap = __mg_map.extent.spatialReference;
                     var coord_idx = this.getAttribute('mg-coord-idx');
@@ -195,6 +221,12 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
                     showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
                 };
+                
+                var onResNameClick = function() {
+                    // console.log('click on name');
+                    // console.log(this);
+                    highlightResStr(this);
+                };
 
                 var req_val = document.getElementById('mg-req-val').value;
                 if (!req_val.length) {
@@ -211,7 +243,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 xhr.onload = function() {
                     try {
                         var res = JSON.parse(xhr.response);
-                    } 
+                    }
                     catch(err) {
                         console.log('JSON parse error');
                         console.log(err);
@@ -237,7 +269,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     for (i1=0; i1<__mg_search_res.length; i1++) {
                         clone = tmpl_block.cloneNode(true);
                         res_name = clone.querySelector('.mg-search-txt');
-                        res_name.innerText = __mg_search_res[i1].txt; 
+                        res_name.innerText = __mg_search_res[i1].txt;
+                        res_name.addEventListener('click', onResNameClick);
                         res_coords = clone.querySelector('.mg-search-coords');
                         res_coords.setAttribute('mg-coord-idx', i1.toString());
                         res_coords.addEventListener('click', onCoordsClick);
@@ -246,7 +279,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         res_run_prot.addEventListener('click', onRunProtClick);
                         container.appendChild(clone);
                     };
-                    console.log(__mg_search_res);
+                    // console.log(__mg_search_res);
                 };
 
                 xhr.onerror = function() {};                
