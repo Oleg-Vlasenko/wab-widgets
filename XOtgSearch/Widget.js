@@ -151,31 +151,56 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 var __mg_search_res = [];
                 
                 var highlightResStr = function(elt) {
-                    // console.log(this);
-                    // console.log(elt);
-
-                    var selected_blocks = document.getElementsByClassName('mg-search-block-selected');
+                    var html_collect = document.getElementsByClassName('mg-search-block-selected');
+                    var selected_blocks = [];
+                    var selected_separators = [];
+                    
+                    for (i1=0; i1<html_collect.length; i1++) {
+                        selected_blocks.push(html_collect[i1]);
+                    }
                     for (i1=0; i1<selected_blocks.length; i1++) {
                         selected_blocks[i1].classList.remove('mg-search-block-selected');
                     }
-
-                    var block = elt.closest('.mg-search-block');
-                    // console.log(block);
-                    block.classList.add('mg-search-block-selected');
                     
-                    // разделители
-                    // temp1.nextSibling
+                    html_collect = document.getElementsByClassName('mg-separator-selected');
+                    for (i1=0; i1<html_collect.length; i1++) {
+                        selected_separators.push(html_collect[i1]);
+                    }
+                    for (i1=0; i1<selected_separators.length; i1++) {
+                        selected_separators[i1].classList.remove('mg-separator-selected');
+                    }
 
-                    
-                    // + набить стили
-                    // повесить на поиск и открытие 
+                    var elt_block = elt.closest('.mg-search-block');
+                    // console.log(elt_block);
+                    elt_block.classList.add('mg-search-block-selected');
+
+                    var elt_row = elt.closest('.mg-search-row');
+                    var elt_separator = row.querySelector('.mg-separator');
+                    var next_separator = row.nextSibling.querySelector('.mg-separator');
+
+                    elt_separator.classList.add('mg-separator-selected');
+                    next_separator.classList.add('mg-separator-selected');
+                };
+                
+                var showPopUp = function (url, parameters) {
+                    popUpObj = window.open(url,
+                        "ModalPopUp",
+                        "popup=yes," +
+                        "toolbar=no," +
+                        "scrollbars=no," +
+                        "location=no," +
+                        "statusbar=no," +
+                        "menubar=no," +
+                        "resizable=0," +
+                        "width=700," +
+                        "height=500," +
+                        "left = 490," +
+                        "top=100");
                 };
 
+
                 var onCoordsClick = function() {
-                    window.__mg_test1 = this;
-                    console.log(window.__mg_test1);
-                    return;
-                    
+                    highlightResStr(this);                    
                     
                     __mg_map.graphics.clear();
                     var srMap = __mg_map.extent.spatialReference;
@@ -201,30 +226,14 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 };
 
                 var onRunProtClick =  function() {
-                    function showPopUp(url, parameters) {
-                        popUpObj = window.open(url,
-                            "ModalPopUp",
-                            "popup=yes," +
-                            "toolbar=no," +
-                            "scrollbars=no," +
-                            "location=no," +
-                            "statusbar=no," +
-                            "menubar=no," +
-                            "resizable=0," +
-                            "width=700," +
-                            "height=500," +
-                            "left = 490," +
-                            "top=100");
-                    }
-
+                    highlightResStr(this);
+                    
                     var coord_idx = this.getAttribute('mg-coord-idx');
                     geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
                     showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
                 };
                 
                 var onResNameClick = function() {
-                    // console.log('click on name');
-                    // console.log(this);
                     highlightResStr(this);
                 };
 
