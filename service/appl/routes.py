@@ -630,12 +630,6 @@ def __parcelgeom(parcel_geom=None, con=None):
     if brd[2]:
         brd_text3 = 'Ділянка знаходиться в межах об’єкта зеленого господарства'
     
-
-    # print(parceldata['zoning'])
-    # print(parceldata['red_lines'][0])
-    # print(parceldata['rl_others'][0])
-    # return 'red_lines'
-    
     parceldata['zoning'] = zng_grp
     parceldata['zng_text'] = zng_text
     parceldata['red_lines'] = rl_grp
@@ -662,8 +656,8 @@ def __printform():
     # перенесен в статический html, который заполняет себя своим скриптом через данные вызвавшего окна window.opener
     return render_template('printform.html', printdata=printdata)
 
-@app.route('/find_geom/<find_val>', methods=['GET'])
-def __find_geom(find_val):
+@app.route('/find_geom/<find_addr>/<find_custmr>', methods=['GET'])
+def __find_geom(find_addr, find_custmr):
     con = psycopg2.connect(connstring)
     cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -674,11 +668,12 @@ def __find_geom(find_val):
             zak,
             kodokpo
         FROM
-            arcgis.public."XML" x
+            arcgis.public."xml" x
         WHERE
-            x.kodokpo like '%{okpo}%'
+            x.str like '%{addr}%' OR
+            x.zak like '%{custmr}%'
         LIMIT 20
-        '''.format(okpo=find_val)
+        '''.format(addr=find_addr, custmr=find_custmr)
     
     cur.execute(sql)
     rows = cur.fetchall()

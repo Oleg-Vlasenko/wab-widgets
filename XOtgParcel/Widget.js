@@ -220,7 +220,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 //geojson3857 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
                 //    ',"crs":{"type":"name","properties":{"name":"EPSG:3857"}'
 
-                console.log(geojson0);
+                // console.log(geojson0);
                 // select st_geomfromgeojson(geojson) 
                 dom.byId('message').innerHTML = geojson0;
                 showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);

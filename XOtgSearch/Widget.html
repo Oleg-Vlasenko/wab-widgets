@@ -1,13 +1,21 @@
 ﻿<div>
 
-	<h2>Пошук ділянки</h2>
+	<h2>Пошук ділянки у шарі XML</h2>
 
-	<div style="margin-bottom: 6px;">
-        <span class="label">Введіть частину коду ЄДРПОУ</span>
+	<div style="margin-bottom: 6px; margin-top: 6px;">
+        <span class="label">Адреса</span>
     </div>
 	<div style="margin-bottom: 12px;">
         <span class="input">
-            <input id="mg-req-val" class="jimu-input" type="text" value="" />
+            <input style="min-width: 100%" id="mg-req-addr" class="jimu-input" type="text" value="" />
+        </span>
+    </div>
+	<div style="margin-bottom: 6px;">
+        <span class="label">Замовник</span>
+    </div>
+	<div style="margin-bottom: 12px;">
+        <span class="input">
+            <input style="min-width: 100%" id="mg-req-custmr" class="jimu-input" type="text" value="" />
         </span>
     </div>
     <div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnJsonClick">

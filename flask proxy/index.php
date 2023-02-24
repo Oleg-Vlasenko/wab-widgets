@@ -4,7 +4,7 @@ $ch = curl_init();
 
 // set url
 // проксируем во фласк-сервис
-curl_setopt($ch, CURLOPT_URL, 'http://192.168.17.45:5024/find_geom/' . $_REQUEST['req_val']);
+curl_setopt($ch, CURLOPT_URL, 'http://192.168.17.45:5024/find_geom/'.urlencode($_REQUEST['req_addr']).'/'.urlencode($_REQUEST['req_custmr']));
 
 //return the transfer as a string
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);

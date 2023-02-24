@@ -153,8 +153,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 var highlightResStr = function(elt) {
                     var html_collect = document.getElementsByClassName('mg-search-block-selected');
                     var selected_blocks = [];
-                    var selected_separators = [];
-                    
                     for (i1=0; i1<html_collect.length; i1++) {
                         selected_blocks.push(html_collect[i1]);
                     }
@@ -162,7 +160,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         selected_blocks[i1].classList.remove('mg-search-block-selected');
                     }
                     
-                    html_collect = document.getElementsByClassName('mg-separator-selected');
+                    var html_collect = document.getElementsByClassName('mg-separator-selected');
+                    var selected_separators = [];
                     for (i1=0; i1<html_collect.length; i1++) {
                         selected_separators.push(html_collect[i1]);
                     }
@@ -170,16 +169,18 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         selected_separators[i1].classList.remove('mg-separator-selected');
                     }
 
-                    var elt_block = elt.closest('.mg-search-block');
-                    // console.log(elt_block);
-                    elt_block.classList.add('mg-search-block-selected');
+                    var block = elt.closest('.mg-search-block');
+                    // console.log(block);
+                    block.classList.add('mg-search-block-selected');
 
-                    var elt_row = elt.closest('.mg-search-row');
-                    var elt_separator = row.querySelector('.mg-separator');
-                    var next_separator = row.nextSibling.querySelector('.mg-separator');
+                    var row = elt.closest('.mg-search-row');
+                    var separator_1 = row.querySelector('.mg-separator');
+                    var separator_2 = row.nextSibling.querySelector('.mg-separator');
 
-                    elt_separator.classList.add('mg-separator-selected');
-                    next_separator.classList.add('mg-separator-selected');
+                    separator_1.classList.add('mg-separator-selected');
+                    separator_2.classList.add('mg-separator-selected');
+                    // + набить стили
+                    // повесить на поиск и открытие 
                 };
                 
                 var showPopUp = function (url, parameters) {
@@ -237,17 +238,16 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     highlightResStr(this);
                 };
 
-                var req_val = document.getElementById('mg-req-val').value;
-                if (!req_val.length) {
+                var req_addr = document.getElementById('mg-req-addr').value;
+                var req_custmr = document.getElementById('mg-req-custmr').value;
+                if ((!req_addr.length) && (!req_custmr.length)) {
                     alert('Порожній запит!');
                     return;
                 }
                 
                 var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_val=' + req_val);
+				xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_addr='+req_addr+'&req_custmr='+req_custmr);
                 xhr.send();
-                // form_data = new FormData();
-                // xhr.send(form_data);
 
                 xhr.onload = function() {
                     try {
@@ -267,7 +267,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                             continue;
                         }
                         sr_res = {
-                            'txt' : res[i1][3]+' - '+res[i1][1]+', '+res[i1][2],
+                            'txt' : res[i1][2]+', '+res[i1][1],
                             'coords' : coords.coordinates[0]
                         };
                         __mg_search_res.push(sr_res);
