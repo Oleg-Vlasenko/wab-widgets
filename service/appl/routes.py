@@ -658,6 +658,15 @@ def __printform():
 
 @app.route('/find_geom/<find_addr>/<find_custmr>', methods=['GET'])
 def __find_geom(find_addr, find_custmr):
+    if (find_addr=='empt_param'):
+        find_addr=''
+    if (find_custmr=='empt_param'):
+        find_custmr=''
+    # print('find_addr')
+    # print(find_addr)
+    # print('find_custmr')
+    # print(find_custmr)
+
     con = psycopg2.connect(connstring)
     cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -670,16 +679,17 @@ def __find_geom(find_addr, find_custmr):
         FROM
             arcgis.public."xml" x
         WHERE
-            x.str like '%{addr}%' OR
-            x.zak like '%{custmr}%'
+            lower(x.str) like '%{addr}%' AND
+            lower(x.zak) like '%{custmr}%'
         LIMIT 20
-        '''.format(addr=find_addr, custmr=find_custmr)
+        '''.format(addr=find_addr.lower(), custmr=find_custmr.lower())
+    # print(sql)
     
     cur.execute(sql)
     rows = cur.fetchall()
 
-    for row in rows:
-        print(row)
+    # for row in rows:
+        # print(row)
         
     return jsonify(rows)
 

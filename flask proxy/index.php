@@ -2,9 +2,16 @@
 // create curl resource
 $ch = curl_init();
 
-// set url
+$addr = urlencode($_REQUEST['req_addr']);
+if (!strlen($addr)) {
+	$addr = 'empt_param';
+}
+$custmr = urlencode($_REQUEST['req_custmr']);
+if (!strlen($custmr)) {
+	$custmr = 'empt_param';
+}
 // проксируем во фласк-сервис
-curl_setopt($ch, CURLOPT_URL, 'http://192.168.17.45:5024/find_geom/'.urlencode($_REQUEST['req_addr']).'/'.urlencode($_REQUEST['req_custmr']));
+curl_setopt($ch, CURLOPT_URL, 'http://192.168.17.45:5024/find_geom/'.$addr.'/'.$custmr);
 
 //return the transfer as a string
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);

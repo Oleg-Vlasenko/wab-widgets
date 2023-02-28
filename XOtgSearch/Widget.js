@@ -254,6 +254,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         var res = JSON.parse(xhr.response);
                     }
                     catch(err) {
+						container.innerHTML = '';
                         console.log('JSON parse error');
                         console.log(err);
                         return;
