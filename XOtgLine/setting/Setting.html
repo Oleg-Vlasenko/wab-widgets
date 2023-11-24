@@ -1,0 +1,85 @@
+<div>
+	<form data-dojo-attach-point="settingsForm" data-dojo-type="dijit/form/Form">
+
+		<div class="row">
+
+			<table class="layout">
+				<colgroup>
+					<col width="80px" align="right">
+					<col width="auto">
+					<col width="170px">
+				</colgroup>
+				<tbody>
+
+					<tr>
+						<td class="first-td">
+							<span>${nls.UrlServiceGP}:</span>
+						</td>
+						<td>
+							<div class="dijit dijitReset dijitInline dijitLeft jimu-url-input dijitTextBox dijitValidationTextBox dijitTextBoxFocused dijitValidationTextBoxFocused dijitFocused"
+								 id="jimu_dijit_URLInput_UrlServiceGP_0" role="presentation"
+								 widgetid="jimu_dijit_xotgparcel" style="width: 100%;">
+								<div class="dijitReset dijitValidationContainer">
+									<input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner"
+										   value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation">
+								</div>
+								<div class="dijitReset dijitInputField dijitInputContainer">
+									<input class="dijitReset dijitInputInner"
+										   data-dojo-attach-point="textbox,focusNode,UrlParcelService" autocomplete="off"
+										   type="text" aria-required="true" tabindex="0"
+										   id="jimu_dijit_URLInput_UrlParcelService" value="" aria-invalid="false">
+								</div>
+							</div>
+						</td>
+						<td>
+							<div class="jimu-btn validate-btn jimu-float-trailing" data-dojo-attach-point="btnValidate"
+								 data-dojo-attach-event="onclick:_onBtnValidateClick">Validate</div>
+						</td>
+					</tr>
+
+					<tr>
+						<td class="first-td">
+							<span>${nls.fileUploadUrl}:</span>
+						</td>
+						<td>
+							<div class="dijit dijitReset dijitInline dijitLeft jimu-url-input dijitTextBox dijitValidationTextBox dijitTextBoxFocused dijitValidationTextBoxFocused dijitFocused"
+								 id="jimu_dijit_URLInput_UrlServiceGP_1" role="presentation"
+								 widgetid="jimu_dijit_xotgparcel" style="width: 100%;">
+								<div class="dijitReset dijitValidationContainer">
+									<input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner"
+										   value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation">
+								</div>
+								<div class="dijitReset dijitInputField dijitInputContainer">
+									<input class="dijitReset dijitInputInner"
+										   data-dojo-attach-point="textbox,focusNode,UrlGeometryService" autocomplete="off"
+										   type="text" aria-required="true" tabindex="0"
+										   id="jimu_dijit_URLInput_UrlGeometryService" value="" aria-invalid="false">
+								</div>
+							</div>
+						</td>
+						<td>
+							<div class="jimu-btn validate-btn jimu-float-trailing" data-dojo-attach-point="btnValidate"
+								 data-dojo-attach-event="onclick:_onBtnValidateClick">Validate</div>
+						</td>
+					</tr>
+
+
+				</tbody>
+			</table>
+		</div>
+
+		<div class="row">
+			<div class="left-cell">
+				<div id="id_isBaseMercator" data-dojo-attach-point="isBaseMercator"
+					 data-dojo-type="jimu/dijit/CheckBox">
+
+				</div>
+				<label for="id_isBaseMercator"> ${nls.isBaseMercator}</label>
+			</div>
+		</div>
+
+		<hr>
+
+
+	</form>
+</div>
