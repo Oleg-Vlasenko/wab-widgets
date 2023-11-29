@@ -201,16 +201,19 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.showZoomSlider();
 
                 // this._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, null, new Color([0, 0, 255]));
-				this._symPoly = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 255]), 3);
+				this._symPoly = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([75, 190, 242]), 3);
 
                 var graphic = new Graphic(evt.geometry, this._symPoly);
                 this.map.graphics.add(graphic);
 
                 geojson0 = '{"type": "POLYLINE", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}'
+                // geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}'
+				// geojson1 = geojson0.replace("[[[", "[[");
+				// geojson2 = geojson1.replace("]]]", "]]");
 
                 console.log(geojson0);
-                // dom.byId('message').innerHTML = geojson0;
-                // showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+                dom.byId('message').innerHTML = geojson0;
+                showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
                 
                 window.__mg_drawtoolbar.deactivate();
                 this.map.setInfoWindowOnClick(true);
@@ -243,6 +246,20 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             //console.log(map.extent.spatialReference);
             console.log('startup');
 
+			// This style does not allow us to color our polylines
+			// Loop through all <style> tags
+			/*
+			for (var i = 0; i < styleTags.length; i++) {
+				// Get the text of the content of the <style> tag
+				var styleContent = styleTags[i].innerHTML;
+
+				// Check if the text contains the search string
+				if (styleContent.indexOf("svg path {stroke: #000 !important;}") !== -1) {
+					// If it contains, remove the <style> tag
+					styleTags[i].parentNode.removeChild(styleTags[i]);
+					break; // If you need to remove only the first occurrence
+				}
+			}*/
 
             // coordinateFormatter spatial reference 
             const geoSpatialReference = new SpatialReference({
@@ -255,7 +272,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
             var message = document.getElementById("message");
 
-			var sfsPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, null, new Color([0, 0, 255]));
+			// var sfsPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, null, new Color([0, 0, 255]));
 
             this.drawtoolbar = new Draw(this.map)
             this.drawtoolbar.on("draw-end", this.addToMap)
