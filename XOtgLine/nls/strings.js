@@ -2,8 +2,9 @@
     root: ({
         _widgetLabel: "XOtgParcel",
         btnClearText: "Прибрати з карти",
-        headerText: "Накреслити ділянку",
-        buttonPolygonText: "Накреслити ділянку"
+        headerText: "Накреслити об'єкт на карті",
+        buttonPolygonText: "Накреслити ділянку",
+        buttonPolyLineText: "Накреслити полілінію"
     }),
     "ru": 1,
     "uk": 1,

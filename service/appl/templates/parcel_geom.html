@@ -204,7 +204,11 @@ body {
 
 <br>
 
-<h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:postpopup()">Вивести друковану форму</a></h3>
+{% if parceldata['area'] > 0  %}
+	<h3>Площа ділянки {{ parceldata['area'] }} м2 &nbsp; &nbsp; <a href="javascript:postpopup()">Вивести друковану форму</a></h3>
+{% else %}
+	<h3><a href="javascript:postpopup()">Вивести друковану форму</a></h3>
+{% endif %}
 
 <div class="wrapper">
   

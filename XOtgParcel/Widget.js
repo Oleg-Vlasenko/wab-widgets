@@ -124,18 +124,32 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
 
             _onBtnPolygonClick: function () {
+				var draw_mode = 'polygon';
+				
                 this.map.graphics.clear();
-
 
                 //this.drawtoolbar = new Draw(this.map)
                 //this.drawtoolbar.on("draw-end", this._addToMap)
                 
                 window.__mg_drawtoolbar = this.drawtoolbar;
                 this.map.setInfoWindowOnClick(false);
-                this.drawtoolbar.activate('polygon');  //'polygon' Draw['POLYGON']
+                this.drawtoolbar.activate(draw_mode);  //'polygon' Draw['POLYGON']
+				window.__mg_draw_mode = draw_mode;
                 this.map.hideZoomSlider();
                 
                 //console.log('polygon');
+            },
+
+            _onBtnPolyLineClick: function () {
+				var draw_mode = 'polyline';
+
+                this.map.graphics.clear();
+
+                window.__mg_drawtoolbar = this.drawtoolbar;
+                this.map.setInfoWindowOnClick(false);
+                this.drawtoolbar.activate(draw_mode);
+				window.__mg_draw_mode = draw_mode;
+                this.map.hideZoomSlider();
             },
 
 
@@ -177,9 +191,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
              },
             */
-
-            addToMap: function (evt) {
-
+			
+			addToMap: function (evt) {
                 function showPopUp(url, parameters) {
                     popUpObj = window.open(url,
                         "ModalPopUp",
@@ -200,35 +213,55 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 }
 
                 var symbol;
-                this.map.showZoomSlider();
+				symbol = new SimpleFillSymbol();
+				
+				this.map.showZoomSlider();
 
-                //this.drawtoolbar.deactivate(); //  null ? 
+				if (window.__mg_draw_mode == 'polyline') {
 
-                symbol = new SimpleFillSymbol();
+					this._symPoly = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([75, 190, 242]), 3);
 
-                this._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
-                    new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
-                        new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
+					//var graphic = new Graphic(evt.geometry, symbol);
+					var graphic = new Graphic(evt.geometry, this._symPoly);
+					this.map.graphics.add(graphic);
 
-                //var graphic = new Graphic(evt.geometry, symbol);
-                var graphic = new Graphic(evt.geometry, this._symPoly);
-                this.map.graphics.add(graphic);
+					geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}'
+					geojson1 = geojson0.replace("[[[", "[[");
+					geojson2 = geojson1.replace("]]]", "]]");
 
-                geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}'
-                //geojson = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
-                //    ',"crs":{"type":"name","properties":{"name":"ESRI:' + graphic.geometry.spatialReference.wkid + '"}'
-                //geojson3857 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
-                //    ',"crs":{"type":"name","properties":{"name":"EPSG:3857"}'
+					dom.byId('message').innerHTML = geojson2;
+					showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson2);
+					
+					window.__mg_drawtoolbar.deactivate();
+					this.map.setInfoWindowOnClick(true);
+				}
+				
+				else {
 
-                // console.log(geojson0);
-                // select st_geomfromgeojson(geojson) 
-                dom.byId('message').innerHTML = geojson0;
-                showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
-                //showPopUp(this._urlParcelService + geojson0);
-                //showPopUp('http://192.168.0.115:5020/parcel/2323981500010010105');
-                
-                window.__mg_drawtoolbar.deactivate();
-                this.map.setInfoWindowOnClick(true);
+					this._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+						new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+							new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
+
+					//var graphic = new Graphic(evt.geometry, symbol);
+					var graphic = new Graphic(evt.geometry, this._symPoly);
+					this.map.graphics.add(graphic);
+
+					geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}'
+					//geojson = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
+					//    ',"crs":{"type":"name","properties":{"name":"ESRI:' + graphic.geometry.spatialReference.wkid + '"}'
+					//geojson3857 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
+					//    ',"crs":{"type":"name","properties":{"name":"EPSG:3857"}'
+
+					// console.log(geojson0);
+					// select st_geomfromgeojson(geojson) 
+					dom.byId('message').innerHTML = geojson0;
+					showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+					//showPopUp(this._urlParcelService + geojson0);
+					//showPopUp('http://192.168.0.115:5020/parcel/2323981500010010105');
+					
+					window.__mg_drawtoolbar.deactivate();
+					this.map.setInfoWindowOnClick(true);
+				}
             },
             /*
             _showPopUp: function (url, parameters) {
@@ -252,7 +285,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             */
 
           startup: function () {
-            this.inherited(arguments);
+			
+			this.inherited(arguments);
             //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
             var map = this.map;
             var srMap = map.extent.spatialReference;
@@ -272,6 +306,23 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             var message = document.getElementById("message");
             //var messagestatus = document.getElementById("messagestatus");
             //var messageaddstatus = document.getElementById("messageaddstatus");
+
+			// This style does not allow us to color our polylines
+			/*
+			var styleTags = document.getElementsByTagName("style");
+			// Loop through all <style> tags
+			for (var i = 0; i < styleTags.length; i++) {
+				// Get the text of the content of the <style> tag
+				var styleContent = styleTags[i].innerHTML;
+
+				// Check if the text contains the search string
+				if (styleContent.indexOf("svg path {stroke: #000 !important;}") !== -1) {
+					// If it contains, remove the <style> tag
+					styleTags[i].parentNode.removeChild(styleTags[i]);
+					break; // If you need to remove only the first occurrence
+				}
+			}
+			*/
 
             //var redsym = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 0.5]), 3);
             //var redsymdd = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT, new Color([255, 0, 0, 0.5]), 3);
