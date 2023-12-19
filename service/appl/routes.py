@@ -447,6 +447,74 @@ def __parcelgeom(parcel_geom=None, con=None):
     if select:
         brd[2] = True
 
+    other_docs = [False, False, False, False, False, False]
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."муо" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+    if select:
+        other_docs[0] = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."бп" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+    if select:
+        other_docs[1] = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."паспорт_прив_тимч_споруд" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+    if select:
+        other_docs[2] = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."містобудівна_рада" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+    if select:
+        other_docs[3] = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."висновки" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+    if select:
+        other_docs[4] = True
+
+    sql = '''
+    SELECT *
+    FROM arcgis.public."dozvol_zayava_region" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
+        '''.format(geom=parcel_geom)
+    
+    cur.execute(sql)
+    select = cur.fetchone()
+    if select:
+        other_docs[5] = True
+
 
     zng_lst = []
     zng_grp = []
@@ -629,6 +697,30 @@ def __parcelgeom(parcel_geom=None, con=None):
     brd_text3 = ' - '
     if brd[2]:
         brd_text3 = 'Ділянка знаходиться в межах об’єкта зеленого господарства'
+        
+    otdocs_text1 = ' - '
+    if other_docs[0]:
+        otdocs_text1 = 'Ділянка знаходиться в межах території на яку були надані містобудівні умови та обмеження'
+    
+    otdocs_text2 = ' - '
+    if other_docs[1]:
+        otdocs_text2 = 'Ділянка знаходиться в межах території на якій був надан будівельний паспорт'
+    
+    otdocs_text3 = ' - '
+    if other_docs[2]:
+        otdocs_text3 = 'Ділянка знаходиться в межах території  на яку було видано паспорт прив`язки'
+    
+    otdocs_text4 = ' - '
+    if other_docs[3]:
+        otdocs_text4 = 'Ділянка знаходиться в межах території на якій розглядалась можливість розташування об’єкта згідно протоколу містобудівної ради'
+    
+    otdocs_text5 = ' - '
+    if other_docs[4]:
+        otdocs_text5 = 'На території ділянки розглядались матеріали проекту землеустрою щодо відведення зазначеної земельної ділянки'
+    
+    otdocs_text6 = ' - '
+    if other_docs[5]:
+        otdocs_text6 = 'На території ділянки буди надані дозволи'
     
     parceldata['zoning'] = zng_grp
     parceldata['zng_text'] = zng_text
@@ -648,6 +740,13 @@ def __parcelgeom(parcel_geom=None, con=None):
     parceldata['brd_text1'] = brd_text1
     parceldata['brd_text2'] = brd_text2
     parceldata['brd_text3'] = brd_text3
+    parceldata['other_docs'] = other_docs
+    parceldata['otdocs_text1'] = otdocs_text1
+    parceldata['otdocs_text2'] = otdocs_text2
+    parceldata['otdocs_text3'] = otdocs_text3
+    parceldata['otdocs_text4'] = otdocs_text4
+    parceldata['otdocs_text5'] = otdocs_text5
+    parceldata['otdocs_text6'] = otdocs_text6
     
     return render_template('parcel_geom.html', parceldata=parceldata)
 
@@ -859,7 +958,6 @@ def __parcelgeom2(parcel_geom=None, con=None):
 
     if select:
         brd[2] = True
-
 
     zng_lst = []
     zng_grp = []

@@ -441,18 +441,106 @@ body {
       </div>
     </div>
     {% endif %}
+
+  </div>
+  {% endif %}
+
+  {% if parceldata['other_docs'][0] or parceldata['other_docs'][1] %}
+  <div class="table">
   
+    <div class="row header blue">
+      <div class="cell">
+        <label class="container">&nbsp;
+            Наявність раніше виданих або розглянутих документів 
+            <input id="otd-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+        </label>
+      </div>
+      <div class="cell cell2">
+      </div>
+    </div>
+    
+    {% if parceldata['other_docs'][0] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Містобудівні умови та обмеження забудови
+            <input id="otd1" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text1'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+
+    {% if parceldata['other_docs'][1] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Будівельні паспорти
+            <input id="otd2" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text2'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
+    {% if parceldata['other_docs'][2] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Паспорта прив’язки тимчасової споруди 
+            <input id="otd3" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text3'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
+    {% if parceldata['other_docs'][4] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Протокол засідання архітектурно-містобудівної ради
+            <input id="otd4" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text4'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
+    {% if parceldata['other_docs'][4] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Містобудівні висновки або витяги з містобудівної документації
+            <input id="otd5" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text5'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
+    {% if parceldata['other_docs'][5] %}
+    <div class="row data-row">
+      <div class="cell" data-title="id">
+        <label class="container">&nbsp;
+            Наявність дозволів
+            <input id="otd6" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text6'] }}"><span class="checkmark"></span>
+        </label>
+      </div>
+      <div class="cell" data-title="data">
+      </div>
+    </div>
+    {% endif %}
+  
+  </div>
   {% endif %}
  
 </div>
-
-<form id="printform" action="http://192.168.17.45:5024/printform" target="formresult" method="POST" style="display:none">
-    <input name="zng_text" type="text" value="{{ parceldata['zng_text'] }}">
-    <input name="rl_text" type="text" value="{{ parceldata['rl_text'] }}">
-    <input name="hist_text1" type="text" value="{{ parceldata['hist_text1'] }}">
-    <input name="hist_text2" type="text" value="{{ parceldata['hist_text2'] }}">
-    <input name="hist_text3" type="text" value="{{ parceldata['hist_text3'] }}">
-</form>
 
 </body>
 </html>
@@ -480,6 +568,10 @@ $('#prot-checkbox').change(function() {
 });
 
 $('#brd-checkbox').change(function() { 
+    $(this).parents('.table').find('.data-row').toggle() 
+});
+
+$('#otd-checkbox').change(function() { 
     $(this).parents('.table').find('.data-row').toggle() 
 });
 
@@ -596,6 +688,66 @@ function postpopup() {
         window.brd2_text = ' - ';
         window.brd3_text = ' - ';
     }
+	
+	if ($('#otd-checkbox:checked').length > 0) {
+        var otd_text = $('#otd1:checked').attr('_prnstr');
+        if (otd_text) {
+            window.otd1_text = otd_text;
+        }
+        else {
+            window.otd1_text = ' - ';
+        }
+		
+        var otd_text = $('#otd2:checked').attr('_prnstr');
+        if (otd_text) {
+            window.otd2_text = otd_text;
+        }
+        else {
+            window.otd2_text = ' - ';
+        }
+		
+        var otd_text = $('#otd3:checked').attr('_prnstr');
+        if (otd_text) {
+            window.otd3_text = otd_text;
+        }
+        else {
+            window.otd3_text = ' - ';
+        }
+		
+        var otd_text = $('#otd4:checked').attr('_prnstr');
+        if (otd_text) {
+            window.otd4_text = otd_text;
+        }
+        else {
+            window.otd4_text = ' - ';
+        }
+		
+        var otd_text = $('#otd5:checked').attr('_prnstr');
+        if (otd_text) {
+            window.otd5_text = otd_text;
+        }
+        else {
+            window.otd5_text = ' - ';
+        }
+		
+        var otd_text = $('#otd6:checked').attr('_prnstr');
+        if (otd_text) {
+            window.otd6_text = otd_text;
+        }
+        else {
+            window.otd6_text = ' - ';
+        }
+		
+	}
+    else {
+        window.otd1_text = ' - ';
+        window.otd2_text = ' - ';
+        window.otd3_text = ' - ';
+        window.otd4_text = ' - ';
+        window.otd5_text = ' - ';
+        window.otd6_text = ' - ';
+	
+	}
 
 
     window.open('/static/printform.html','printform','scrollbars=no,menubar=no,height=700,width=700,left=340, top=100,resizable=yes,toolbar=no,status=no');
