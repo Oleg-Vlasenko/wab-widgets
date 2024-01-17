@@ -1,6 +1,6 @@
 ﻿define({
     root: ({
-        _widgetLabel: "XOtgParcel",
+        _widgetLabel: "XOtgLine",
         btnClearText: "Прибрати з карти",
         headerText: "Накреслити об'єкт на карті",
         buttonPolygonText: "Накреслити ділянку",

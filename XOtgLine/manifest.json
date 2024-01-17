@@ -1,12 +1,12 @@
 {
-  "name": "XOtgParcel",
+  "name": "XOtgLine",
   "2D": true,
   "3D": false,
   "platform": "HTML",
   "version": "2.23",
   "wabVersion": "2.23",
-  "author": "Viktor Nesmieianov",
-  "description": "This widget for OTG Parcel and parcel cost .",
+  "author": "Ol Vl",
+  "description": "This widget for OTG PolyLine.",
   "copyright": "",
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {

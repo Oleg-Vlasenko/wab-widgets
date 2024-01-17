@@ -53,7 +53,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
         //To create a widget, you need to derive from BaseWidget.
         return declare([BaseWidget], {
             // Custom widget code goes here
-            baseClass: 'jimu-widget-xotgparcel',
+            baseClass: 'jimu-widget-xotgline',
             _defaultGsUrl: 
         		'//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer',
             // TODO: own GeometryServer from config
@@ -75,7 +75,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
 
             //this property is set by the framework when widget is loaded.
-            name: 'XOtgParcel',
+            name: 'XOtgLine',
             //methods to communication with app container:
 
             
@@ -124,8 +124,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
 
             _onBtnPolygonClick: function () {
-                console.log('polyline');
-				// return;
+				var draw_mode = 'polygon';
 				
                 this.map.graphics.clear();
 
@@ -134,9 +133,23 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 
                 window.__mg_drawtoolbar = this.drawtoolbar;
                 this.map.setInfoWindowOnClick(false);
-                this.drawtoolbar.activate('polyline');
+                this.drawtoolbar.activate(draw_mode);  //'polygon' Draw['POLYGON']
+				window.__mg_draw_mode = draw_mode;
                 this.map.hideZoomSlider();
                 
+                //console.log('polygon');
+            },
+
+            _onBtnPolyLineClick: function () {
+				var draw_mode = 'polyline';
+
+                this.map.graphics.clear();
+
+                window.__mg_drawtoolbar = this.drawtoolbar;
+                this.map.setInfoWindowOnClick(false);
+                this.drawtoolbar.activate(draw_mode);
+				window.__mg_draw_mode = draw_mode;
+                this.map.hideZoomSlider();
             },
 
 
@@ -144,25 +157,160 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.graphics.clear();
                 dom.byId('message').innerHTML = "";
                 
-                // var map = this.map;
-                // var srMap = map.extent.spatialReference;
+            },
+
+            _onBtnJsonClick1: function() {
+                // alert('_onBtnJsonClick');
+				// return;
+
+                var template = document.getElementById('mg-lines-template');
+                var container = document.getElementById('mg-srch-results');
+                var __mg_map = this.map;
+                var __mg_search_res = [];
                 
-                  // var myPolygon = {"geometry":{"rings":[[[59536.878738427935,27053.246601985968],[59565.98296330305,27041.075744310918],[59555.002733009256,27020.570494967087],[59531.58706117791,27030.360097879624],[59536.878738427935,27053.246601985968]]],
-                    // "spatialReference":srMap},
-                    // "symbol":{"color":[0,0,0,64],"outline":{"color":[0,0,0,255],
-                    // "width":1,"type":"esriSLS","style":"esriSLSSolid"},
-                    // "type":"esriSFS","style":"esriSFSSolid"}};
-                  
-                  // var gra = new Graphic(myPolygon);
+                var highlightResStr = function(elt) {
+                    var html_collect = document.getElementsByClassName('mg-search-block-selected');
+                    var selected_blocks = [];
+                    for (i1=0; i1<html_collect.length; i1++) {
+                        selected_blocks.push(html_collect[i1]);
+                    }
+                    for (i1=0; i1<selected_blocks.length; i1++) {
+                        selected_blocks[i1].classList.remove('mg-search-block-selected');
+                    }
+                    
+                    var html_collect = document.getElementsByClassName('mg-separator-selected');
+                    var selected_separators = [];
+                    for (i1=0; i1<html_collect.length; i1++) {
+                        selected_separators.push(html_collect[i1]);
+                    }
+                    for (i1=0; i1<selected_separators.length; i1++) {
+                        selected_separators[i1].classList.remove('mg-separator-selected');
+                    }
+
+                    var block = elt.closest('.mg-search-block');
+                    // console.log(block);
+                    block.classList.add('mg-search-block-selected');
+
+                    var row = elt.closest('.mg-search-row');
+                    var separator_1 = row.querySelector('.mg-separator');
+                    var separator_2 = row.nextSibling.querySelector('.mg-separator');
+
+                    separator_1.classList.add('mg-separator-selected');
+                    separator_2.classList.add('mg-separator-selected');
+                    // + набить стили
+                    // повесить на поиск и открытие 
+                };
                 
-                    // map.graphics.add(gra);
-                    // try {
-                      // var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
-                      // map.setExtent(extent);
-                    // } catch (err) {
-                      // console.log(err)
-                    // }
+                var showPopUp = function (url, parameters) {
+                    popUpObj = window.open(url,
+                        "ModalPopUp",
+                        "popup=yes," +
+                        "toolbar=no," +
+                        "scrollbars=no," +
+                        "location=no," +
+                        "statusbar=no," +
+                        "menubar=no," +
+                        "resizable=0," +
+                        "width=700," +
+                        "height=500," +
+                        "left = 490," +
+                        "top=100");
+                };
+
+
+                var onCoordsClick = function() {
+                    highlightResStr(this);                    
+                    
+                    __mg_map.graphics.clear();
+                    var srMap = __mg_map.extent.spatialReference;
+                    var coord_idx = this.getAttribute('mg-coord-idx');
+                    
+                    var myPolygon = {'geometry':{'rings': __mg_search_res[coord_idx].coords,
+                        'spatialReference':srMap},
+                        'symbol':{'color':[0,0,0,64],'outline':{'color':[0,0,0,255],
+                        'width':1,'type':'esriSLS','style':'esriSLSSolid'},
+                        'type':'esriSFS','style':'esriSFSSolid'}};
+                      
+                    var gra = new Graphic(myPolygon);
+
+                    __mg_map.graphics.add(gra);
+                    try {
+                        var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
+                        __mg_map.setExtent(extent);
+                    } 
+                    catch(err) {
+                        console.log(err);
+                    }
+                    
+                };
+
+                var onRunProtClick =  function() {
+                    highlightResStr(this);
+                    
+                    var coord_idx = this.getAttribute('mg-coord-idx');
+                    geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
+                    showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+                };
                 
+                var onResNameClick = function() {
+                    highlightResStr(this);
+                };
+
+                var req_track = document.getElementById('mg-req-track').value;
+                if (!req_track.length) {
+                    alert('Порожній запит!');
+                    return;
+                }
+                
+                var xhr = new XMLHttpRequest();
+				xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_addr='+req_track);
+                xhr.send();
+
+                xhr.onload = function() {
+                    try {
+                        var res = JSON.parse(xhr.response);
+                    }
+                    catch(err) {
+						container.innerHTML = '';
+                        console.log('JSON parse error');
+                        console.log(err);
+                        return;
+                    }
+
+                    for (i1=0; i1<res.length; i1++) {
+                        try {
+                            coords = JSON.parse(res[i1][0]);
+                        }
+                        catch(err) {
+                            continue;
+                        }
+                        sr_res = {
+                            'txt' : res[i1][2]+', '+res[i1][1],
+                            'coords' : coords.coordinates[0]
+                        };
+                        __mg_search_res.push(sr_res);
+                    }
+                    
+                    container.innerHTML = '';
+                    var tmpl_block = template.querySelector('span');
+                    for (i1=0; i1<__mg_search_res.length; i1++) {
+                        clone = tmpl_block.cloneNode(true);
+                        res_name = clone.querySelector('.mg-search-txt');
+                        res_name.innerText = __mg_search_res[i1].txt;
+                        res_name.addEventListener('click', onResNameClick);
+                        res_coords = clone.querySelector('.mg-search-coords');
+                        res_coords.setAttribute('mg-coord-idx', i1.toString());
+                        res_coords.addEventListener('click', onCoordsClick);
+                        res_run_prot = clone.querySelector('.mg-run-prot');
+                        res_run_prot.setAttribute('mg-coord-idx', i1.toString());
+                        res_run_prot.addEventListener('click', onRunProtClick);
+                        container.appendChild(clone);
+                    };
+                    // console.log(__mg_search_res);
+                };
+
+                xhr.onerror = function() {};                
+
             },
 
             /*
@@ -178,9 +326,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
              },
             */
-
-            addToMap: function (evt) {
-
+			
+			addToMap: function (evt) {
                 function showPopUp(url, parameters) {
                     popUpObj = window.open(url,
                         "ModalPopUp",
@@ -196,27 +343,60 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         "left = 490," +
                         "top=100");
 
+                    // popUpObj.focus();
+
                 }
 
-                this.map.showZoomSlider();
+                var symbol;
+				symbol = new SimpleFillSymbol();
+				
+				this.map.showZoomSlider();
 
-                // this._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, null, new Color([0, 0, 255]));
-				this._symPoly = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([75, 190, 242]), 3);
+				if (window.__mg_draw_mode == 'polyline') {
 
-                var graphic = new Graphic(evt.geometry, this._symPoly);
-                this.map.graphics.add(graphic);
+					this._symPoly = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([75, 190, 242]), 3);
 
-                geojson0 = '{"type": "POLYLINE", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}'
-                // geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}'
-				// geojson1 = geojson0.replace("[[[", "[[");
-				// geojson2 = geojson1.replace("]]]", "]]");
+					//var graphic = new Graphic(evt.geometry, symbol);
+					var graphic = new Graphic(evt.geometry, this._symPoly);
+					this.map.graphics.add(graphic);
 
-                console.log(geojson0);
-                dom.byId('message').innerHTML = geojson0;
-                showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
-                
-                window.__mg_drawtoolbar.deactivate();
-                this.map.setInfoWindowOnClick(true);
+					geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}'
+					geojson1 = geojson0.replace("[[[", "[[");
+					geojson2 = geojson1.replace("]]]", "]]");
+
+					dom.byId('message').innerHTML = geojson2;
+					showPopUp('http://192.168.17.45:5024/parcelgeoml/' + geojson2);
+					
+					window.__mg_drawtoolbar.deactivate();
+					this.map.setInfoWindowOnClick(true);
+				}
+				
+				else {
+
+					this._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+						new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+							new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
+
+					//var graphic = new Graphic(evt.geometry, symbol);
+					var graphic = new Graphic(evt.geometry, this._symPoly);
+					this.map.graphics.add(graphic);
+
+					geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}'
+					//geojson = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
+					//    ',"crs":{"type":"name","properties":{"name":"ESRI:' + graphic.geometry.spatialReference.wkid + '"}'
+					//geojson3857 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) +
+					//    ',"crs":{"type":"name","properties":{"name":"EPSG:3857"}'
+
+					// console.log(geojson0);
+					// select st_geomfromgeojson(geojson) 
+					dom.byId('message').innerHTML = geojson0;
+					showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+					//showPopUp(this._urlParcelService + geojson0);
+					//showPopUp('http://192.168.0.115:5020/parcel/2323981500010010105');
+					
+					window.__mg_drawtoolbar.deactivate();
+					this.map.setInfoWindowOnClick(true);
+				}
             },
             /*
             _showPopUp: function (url, parameters) {
@@ -240,26 +420,14 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             */
 
           startup: function () {
-            this.inherited(arguments);
+			
+			this.inherited(arguments);
+            //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
             var map = this.map;
             var srMap = map.extent.spatialReference;
             //console.log(map.extent.spatialReference);
             console.log('startup');
 
-			// This style does not allow us to color our polylines
-			// Loop through all <style> tags
-			/*
-			for (var i = 0; i < styleTags.length; i++) {
-				// Get the text of the content of the <style> tag
-				var styleContent = styleTags[i].innerHTML;
-
-				// Check if the text contains the search string
-				if (styleContent.indexOf("svg path {stroke: #000 !important;}") !== -1) {
-					// If it contains, remove the <style> tag
-					styleTags[i].parentNode.removeChild(styleTags[i]);
-					break; // If you need to remove only the first occurrence
-				}
-			}*/
 
             // coordinateFormatter spatial reference 
             const geoSpatialReference = new SpatialReference({
@@ -271,11 +439,35 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             });
 
             var message = document.getElementById("message");
+            //var messagestatus = document.getElementById("messagestatus");
+            //var messageaddstatus = document.getElementById("messageaddstatus");
 
-			// var sfsPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, null, new Color([0, 0, 255]));
+			// This style does not allow us to color our polylines
+			/*
+			var styleTags = document.getElementsByTagName("style");
+			// Loop through all <style> tags
+			for (var i = 0; i < styleTags.length; i++) {
+				// Get the text of the content of the <style> tag
+				var styleContent = styleTags[i].innerHTML;
+
+				// Check if the text contains the search string
+				if (styleContent.indexOf("svg path {stroke: #000 !important;}") !== -1) {
+					// If it contains, remove the <style> tag
+					styleTags[i].parentNode.removeChild(styleTags[i]);
+					break; // If you need to remove only the first occurrence
+				}
+			}
+			*/
+
+            //var redsym = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 0.5]), 3);
+            //var redsymdd = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT, new Color([255, 0, 0, 0.5]), 3);
+            var sfsPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+              new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+                new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
 
             this.drawtoolbar = new Draw(this.map)
             this.drawtoolbar.on("draw-end", this.addToMap)
+            //this.drawtoolbar.on("draw-start", this.startDraw)
 
           },
 

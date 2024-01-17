@@ -40,3 +40,34 @@
     text-overflow: ellipsis;
 }
 
+.mg-search-txt {
+    margin-top: 4px !important;
+}
+
+.mg-search-res:hover {
+    cursor: default !important;
+}
+
+.mg-search-block {
+    cursor: pointer !important;
+}
+
+.mg-search-block {
+    color: black;
+    font-size: 12px;
+}
+
+.mg-search-block.mg-search-block-selected {
+    color: #032a82 !important;
+    font-size: 14px !important;
+}
+
+.mg-separator {
+    background-color: #D7D7D7 !important;
+    height: 1px !important;
+}
+
+.mg-separator.mg-separator-selected {
+    background-color: #2c63bf !important;
+    height: 2px !important;
+}

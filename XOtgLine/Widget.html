@@ -6,15 +6,15 @@
 	<div>
 		<div class="select-dijit-container" data-dojo-attach-point="selectDijitNode">
 
-			<div class="jimu-btn" data-dojo-attach-point="btnPolygon" tabindex="0"
-				 style="color:white;background-color:cadetblue"
-				 data-dojo-attach-event="onclick:_onBtnPolygonClick">
-				<div class="clear-text">${nls.buttonPolygonText}</div>
+			<div class="jimu-btn" data-dojo-attach-point="btnPolyLine" tabindex="1"
+				 style="color:white; background-color:cadetblue; width: 200px;"
+				 data-dojo-attach-event="onclick:_onBtnPolyLineClick">
+				<div class="clear-text">${nls.buttonPolyLineText}</div>
 			</div>
 			<br>
 			<br>
-			<div class="jimu-btn" data-dojo-attach-point="btnClear" tabindex="1"
-				 style="color:seagreen;background-color:azure"
+			<div class="jimu-btn" data-dojo-attach-point="btnClear" tabindex="2"
+				 style="color:seagreen;background-color:azure; width: 200px;"
 				 data-dojo-attach-event="onclick:_onBtnClearClick">
 				<div class="clear-text">${nls.btnClearText}</div>
 			</div>
@@ -31,6 +31,44 @@
 
 	</div>
 
+	<div class="seperator mg-separator"></div>
+	
+	<div>
+		<h2>Пошук траси</h2>
+
+		<div style="margin-bottom: 6px; margin-top: 6px;">
+			<span class="label">Шифр</span>
+		</div>
+
+		<div style="margin-bottom: 12px;">
+			<span class="input">
+				<input style="min-width: 100%" id="mg-req-track" class="jimu-input" type="text" value="" />
+			</span>
+		</div>
+
+		<div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnJsonClick1" style="color:white; background-color:cadetblue; width: 200px;">
+			Пошук
+		</div>
+	</div>
+
+    <span id="mg-srch-results"></span>
+
+    <span id="mg-lines-template" style="display:none;">
+        <span class="mg-search-row" style="display: table-row; margin: 14px 0 0 0;">
+            <div class="seperator mg-separator"></div>
+            <div class="mg-search-block">
+                <span style="display: table-cell; vertical-align: middle;">
+                    <span class="jimu-icon jimu-icon-search mg-search-coords" title="Знайти на карті" style="margin: 0 10px 0 0; position: relative; top: 3px;"></span>
+                </span>
+                <span style="display: table-cell; width: 1000px;">
+                    <h3 class="mg-search-txt">link</h3>
+                </span>
+                <span style="display: table-cell; vertical-align: middle;">
+                    <span class="jimu-icon jimu-icon-folder-open mg-run-prot" title="Відкрити дані шарів" style="margin: 0 0 0 10px;"></span>
+                </span>
+            </div>
+        </span>
+    </span>
+
+
 </div>
-
-

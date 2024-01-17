@@ -31,7 +31,7 @@ define(["dojo/_base/declare",
     BaseWidgetSetting, _WidgetsInTemplateMixin) {
 
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
-      baseClass: 'jimu-widget-xotgparcel-setting',
+      baseClass: 'jimu-widget-xotgline-setting',
 
 
       defaultDeltaXMercator: 0,
