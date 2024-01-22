@@ -32,7 +32,15 @@
 	</div>
 
 	<div class="seperator mg-separator"></div>
-	
+	<div style="margin-bottom: 30px">
+		<h2>Інформація про обрану трасу</h2>
+
+		<div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnSelectedClick" style="color:white; background-color:cadetblue; width: 200px;">
+			Отримати інформацію
+		</div>
+	</div>
+
+	<div class="seperator mg-separator"></div>
 	<div>
 		<h2>Пошук траси</h2>
 
@@ -46,17 +54,17 @@
 			</span>
 		</div>
 
-		<div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnJsonClick1" style="color:white; background-color:cadetblue; width: 200px;">
+		<div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnSearchClick" style="color:white; background-color:cadetblue; width: 200px;">
 			Пошук
 		</div>
 	</div>
 
-    <span id="mg-srch-results"></span>
+    <span id="mg-srch-results-trs"></span>
 
-    <span id="mg-lines-template" style="display:none;">
+    <span id="mg-lines-template-trs" style="display:none;">
         <span class="mg-search-row" style="display: table-row; margin: 14px 0 0 0;">
             <div class="seperator mg-separator"></div>
-            <div class="mg-search-block">
+            <div class="mg-search-block-trs">
                 <span style="display: table-cell; vertical-align: middle;">
                     <span class="jimu-icon jimu-icon-search mg-search-coords" title="Знайти на карті" style="margin: 0 10px 0 0; position: relative; top: 3px;"></span>
                 </span>

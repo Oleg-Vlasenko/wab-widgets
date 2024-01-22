@@ -601,7 +601,7 @@ function postpopup() {
     else {
         window.rl_text = '';
     }
-	if (window.zng_text.length > 0) {
+	if (window.rl_text.length > 0) {
 		window.line_text.push(' - Червоні лінії Діпроміста;');
 	}
     
@@ -636,6 +636,10 @@ function postpopup() {
         window.hist3_text = ' - ';
     }
     
+	if (window.hist1_text != ' - ' || window.hist2_text != ' - ' || window.hist3_text != ' - ') {
+		window.line_text.push(' - Зони історико-культурного призначення;');
+	}
+
     if ($('#pzsvs-checkbox:checked').length > 0) {
         var pzsvs_text = $('#pzsvs-checkbox').attr('_prnhdr');
         $('.pzsvs-strings:checked').each(function() {
@@ -646,7 +650,7 @@ function postpopup() {
     else {
         window.pzsvs_text = ' - ';
     }
-	if (window.pzsvs_text.length > 0) {
+	if (window.pzsvs_text != ' - ') {
 		window.line_text.push(' - Прибережні_захисні смуги;');
 	}
 
@@ -660,7 +664,7 @@ function postpopup() {
     else {
         window.prot_text = ' - ';
     }
-	if (window.prot_text.length > 0) {
+	if (window.prot_text != ' - ') {
 		window.line_text.push(' - Розрахункові санітарні зони;');
 	}
     
@@ -695,13 +699,13 @@ function postpopup() {
         window.brd2_text = ' - ';
         window.brd3_text = ' - ';
     }
-	if (window.brd1_text.length > 0) {
+	if (window.brd1_text != ' - ') {
 		window.line_text.push(' - Межи лісового господарства;');
 	}
-	if (window.brd2_text.length > 0) {
+	if (window.brd2_text != ' - ') {
 		window.line_text.push(' - Межи території, яка не підлягає забудові;');
 	}
-	if (window.brd3_text.length > 0) {
+	if (window.brd3_text != ' - ') {
 		window.line_text.push(' - Межи об’єкта зеленого господарства;');
 	}
 	

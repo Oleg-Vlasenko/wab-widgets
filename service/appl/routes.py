@@ -1302,6 +1302,38 @@ def __find_geom(find_addr, find_custmr):
         
     return jsonify(rows)
 
+@app.route('/find_trs/<find_addr>/<find_custmr>', methods=['GET'])
+def __find_trs(find_addr, find_custmr):
+    if (find_addr=='empt_param'):
+        find_addr=''
+    if (find_custmr=='empt_param'):
+        find_custmr=''
+    
+    print('find trasse')
+
+    con = psycopg2.connect(connstring)
+    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    sql = '''
+        SELECT
+            ST_AsGeoJSON(geom) as geojson,
+            *
+        FROM
+            arcgis.public."Проекти_інженерних_мереж" tr
+        WHERE
+            lower(tr."шифр") like '%{addr}%'
+        LIMIT 20
+        '''.format(addr=find_addr.lower())
+    # print(sql)
+    
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+    # for row in rows:
+        # print(row)
+        
+    return jsonify(rows)
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('page_not_found.html'), 404

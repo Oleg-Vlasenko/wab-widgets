@@ -63,6 +63,8 @@
 }
 
 .mg-separator {
+	margin-top: 20px;
+    margin-bottom: 12px;
     background-color: #D7D7D7 !important;
     height: 1px !important;
 }

@@ -1,5 +1,21 @@
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+var showPopUp = function (url, parameters) {
+	popUpObj = window.open(url,
+		"ModalPopUp",
+		"popup=yes," +
+		"toolbar=no," +
+		"scrollbars=no," +
+		"location=no," +
+		"statusbar=no," +
+		"menubar=no," +
+		"resizable=0," +
+		"width=700," +
+		"height=500," +
+		"left = 490," +
+		"top=100");
+};
+
 define(['dojo/_base/declare', 'jimu/BaseWidget'
   , "esri/request", "esri/tasks/Geoprocessor", "esri/tasks/DataFile",
     "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol",
@@ -9,6 +25,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
     "esri/InfoTemplate",
 
     "esri/geometry/Polygon",
+    "esri/geometry/Polyline",
     "esri/graphic",
     "esri/graphicsUtils",
 
@@ -37,6 +54,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
         InfoTemplate,
 
         Polygon,
+		Polyline,
         Graphic,
         graphicsUtils,
         SpatialReference, projection,
@@ -159,23 +177,55 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 
             },
 
-            _onBtnJsonClick1: function() {
+            _onBtnSelectedClick: function() {
                 // alert('_onBtnJsonClick');
-				// return;
+				
+				var __mg_map = this.map;
+				// selected by user feature on map
+				var feat = __mg_map.infoWindow.getSelectedFeature();
+				
+				console.log(feat._layer.name);
+				
+				var layer_name = feat._layer.name;
+				if (layer_name.substring(0, 24) != 'Проекти інженерних мереж') {
+					alert('Не вибрано об\'єкт інженерних мереж!');
+					return;
+				}
+				
+				// for polygones only
+				// __mg_map.setExtent(feat.geometry.getExtent().expand(2.5));
+				// __mg_map.centerAt(feat.geometry.getCentroid());
+				
+				console.log(feat);
+				
+				// for polylines
+				var extent = feat.geometry.getExtent();
+				var center = extent.getCenter();
+				__mg_map.setExtent(extent.expand(2.5));
+				__mg_map.centerAt(center);
 
-                var template = document.getElementById('mg-lines-template');
-                var container = document.getElementById('mg-srch-results');
+				geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(feat.geometry.paths) + '}'
+				geojson1 = geojson0.replace("[[[", "[[");
+				geojson2 = geojson1.replace("]]]", "]]");
+
+				showPopUp('http://192.168.17.45:5024/parcelgeoml/' + geojson2);
+
+            },
+
+            _onBtnSearchClick: function() {
+                var template = document.getElementById('mg-lines-template-trs');
+                var container = document.getElementById('mg-srch-results-trs');
                 var __mg_map = this.map;
                 var __mg_search_res = [];
                 
                 var highlightResStr = function(elt) {
-                    var html_collect = document.getElementsByClassName('mg-search-block-selected');
+                    var html_collect = document.getElementsByClassName('mg-search-block-selected-trs');
                     var selected_blocks = [];
                     for (i1=0; i1<html_collect.length; i1++) {
                         selected_blocks.push(html_collect[i1]);
                     }
                     for (i1=0; i1<selected_blocks.length; i1++) {
-                        selected_blocks[i1].classList.remove('mg-search-block-selected');
+                        selected_blocks[i1].classList.remove('mg-search-block-selected-trs');
                     }
                     
                     var html_collect = document.getElementsByClassName('mg-separator-selected');
@@ -187,48 +237,36 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         selected_separators[i1].classList.remove('mg-separator-selected');
                     }
 
-                    var block = elt.closest('.mg-search-block');
+                    var block = elt.closest('.mg-search-block-trs');
                     // console.log(block);
-                    block.classList.add('mg-search-block-selected');
+                    block.classList.add('mg-search-block-selected-trs');
 
                     var row = elt.closest('.mg-search-row');
                     var separator_1 = row.querySelector('.mg-separator');
-                    var separator_2 = row.nextSibling.querySelector('.mg-separator');
 
                     separator_1.classList.add('mg-separator-selected');
-                    separator_2.classList.add('mg-separator-selected');
+					
+					// не последний элемент
+					if (row.nextSibling) {
+						var separator_2 = row.nextSibling.querySelector('.mg-separator');
+						separator_2.classList.add('mg-separator-selected');
+					}
+					
                     // + набить стили
-                    // повесить на поиск и открытие 
+                    // + повесить на поиск и открытие 
                 };
                 
-                var showPopUp = function (url, parameters) {
-                    popUpObj = window.open(url,
-                        "ModalPopUp",
-                        "popup=yes," +
-                        "toolbar=no," +
-                        "scrollbars=no," +
-                        "location=no," +
-                        "statusbar=no," +
-                        "menubar=no," +
-                        "resizable=0," +
-                        "width=700," +
-                        "height=500," +
-                        "left = 490," +
-                        "top=100");
-                };
-
-
                 var onCoordsClick = function() {
                     highlightResStr(this);                    
-                    
+
                     __mg_map.graphics.clear();
                     var srMap = __mg_map.extent.spatialReference;
                     var coord_idx = this.getAttribute('mg-coord-idx');
                     
-                    var myPolygon = {'geometry':{'rings': __mg_search_res[coord_idx].coords,
+                    var myPolygon = {'geometry':{'paths': __mg_search_res[coord_idx].coords,
                         'spatialReference':srMap},
-                        'symbol':{'color':[0,0,0,64],'outline':{'color':[0,0,0,255],
-                        'width':1,'type':'esriSLS','style':'esriSLSSolid'},
+                        'symbol':{'color':[0,0,0,0],'outline':{'color':[255,0,0,255],
+                        'width':2,'type':'esriSLS','style':'esriSLSSolid'},
                         'type':'esriSFS','style':'esriSFSSolid'}};
                       
                     var gra = new Graphic(myPolygon);
@@ -248,8 +286,11 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     highlightResStr(this);
                     
                     var coord_idx = this.getAttribute('mg-coord-idx');
-                    geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
-                    showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+                    geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
+					geojson1 = geojson0.replace("[[[", "[[");
+					geojson2 = geojson1.replace("]]]", "]]");
+
+                    showPopUp('http://192.168.17.45:5024/parcelgeoml/' + geojson2);
                 };
                 
                 var onResNameClick = function() {
@@ -263,12 +304,14 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 }
                 
                 var xhr = new XMLHttpRequest();
-				xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_addr='+req_track);
+				xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_addr_trs='+req_track);
                 xhr.send();
 
                 xhr.onload = function() {
                     try {
                         var res = JSON.parse(xhr.response);
+						console.log('JSON :');
+						console.log(res);
                     }
                     catch(err) {
 						container.innerHTML = '';
@@ -285,8 +328,9 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                             continue;
                         }
                         sr_res = {
-                            'txt' : res[i1][2]+', '+res[i1][1],
-                            'coords' : coords.coordinates[0]
+                            'txt' : res[i1][10]+', '+res[i1][5]+', '+res[i1][6],
+                            // 'coords' : coords.coordinates[0]
+                            'coords' : coords.coordinates
                         };
                         __mg_search_res.push(sr_res);
                     }
@@ -328,25 +372,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             */
 			
 			addToMap: function (evt) {
-                function showPopUp(url, parameters) {
-                    popUpObj = window.open(url,
-                        "ModalPopUp",
-                        "popup=yes," +
-                        "toolbar=no," +
-                        "scrollbars=no," +
-                        "location=no," +
-                        "statusbar=no," +
-                        "menubar=no," +
-                        "resizable=0," +
-                        "width=700," +
-                        "height=500," +
-                        "left = 490," +
-                        "top=100");
-
-                    // popUpObj.focus();
-
-                }
-
                 var symbol;
 				symbol = new SimpleFillSymbol();
 				

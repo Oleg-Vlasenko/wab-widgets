@@ -2,16 +2,40 @@
 // create curl resource
 $ch = curl_init();
 
-$addr = urlencode($_REQUEST['req_addr']);
-if (!strlen($addr)) {
-	$addr = 'empt_param';
+$route = 'find_geom';
+
+if (array_key_exists('req_addr', $_REQUEST)) {
+	$addr = urlencode($_REQUEST['req_addr']);
+	if (!strlen($addr)) {
+		$addr = 'empt_param';
+	}
 }
-$custmr = urlencode($_REQUEST['req_custmr']);
-if (!strlen($custmr)) {
+else {
+	// запрос из кабинета инженера, другой запрос
+	if (array_key_exists('req_addr_trs', $_REQUEST)) {
+		$route = 'find_trs';
+		$addr = urlencode($_REQUEST['req_addr_trs']);
+		if (!strlen($addr)) {
+			$addr = 'empt_param';
+		}
+	}
+	else {
+		$addr = 'empt_param';
+	}
+}
+
+if (array_key_exists('req_custmr', $_REQUEST)) {
+	$custmr = urlencode($_REQUEST['req_custmr']);
+	if (!strlen($custmr)) {
+		$custmr = 'empt_param';
+	}
+}
+else {
 	$custmr = 'empt_param';
 }
+
 // проксируем во фласк-сервис
-curl_setopt($ch, CURLOPT_URL, 'http://192.168.17.45:5024/find_geom/'.$addr.'/'.$custmr);
+curl_setopt($ch, CURLOPT_URL, 'http://192.168.17.45:5024/'.$route.'/'.$addr.'/'.$custmr);
 
 //return the transfer as a string
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
