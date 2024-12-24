@@ -1,794 +1,903 @@
 <html>
+
 <head>
-<meta charset="utf-8">
+  <meta charset="utf-8">
 
-<script type="text/javascript" src="/static/jq361.min.js"></script>
+  <script type="text/javascript" src="/static/jq361.min.js"></script>
 
-<style>
+  <style>
+    h3 {
+      color: gray;
+      margin-left: 40px;
+    }
 
-h3 {
-    color: gray;
-    margin-left: 40px;
-}
+    h3 a {
+      color: #2196F3;
+      text-decoration: none;
+    }
 
-h3 a {
-    color: #2196F3;
-    text-decoration:none;
-}
+    .container a {
+      color: #2980b9;
+      text-decoration: none;
+    }
 
-.container a {
-    color: #2980b9;
-    text-decoration:none;
-}
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 400;
+      color: #3b3b3b;
+      -webkit-font-smoothing: antialiased;
+      font-smoothing: antialiased;
+      < !-- background: #2b2b2b;
+      -->
+    }
 
-body {
-  font-family: "Helvetica Neue", Helvetica, Arial;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 400;
-  color: #3b3b3b;
-  -webkit-font-smoothing: antialiased;
-  font-smoothing: antialiased;
-  <!-- background: #2b2b2b; -->
-}
-@media screen and (max-width: 580px) {
-  body {
-    font-size: 16px;
-    line-height: 22px;
-  }
-}
+    @media screen and (max-width: 580px) {
+      body {
+        font-size: 16px;
+        line-height: 22px;
+      }
+    }
 
-.wrapper {
-  margin: 0 auto;
-  padding: 40px;
-  max-width: 800px;
-}
+    .wrapper {
+      margin: 0 auto;
+      padding: 40px;
+      max-width: 800px;
+    }
 
-.table {
-  margin: 0 0 40px 0;
-  width: 100%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  display: table;
-}
-@media screen and (max-width: 580px) {
-  .table {
-    display: block;
-  }
-}
+    .table {
+      margin: 0 0 40px 0;
+      width: 100%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      display: table;
+    }
 
-.row {
-  display: table-row;
-  background: #f6f6f6;
-}
-.row:nth-of-type(odd) {
-  background: #e9e9e9;
-}
-.row.header {
-  font-weight: 900;
-  color: #ffffff;
-  background: #ea6153;
-}
-.row.green {
-  background: #27ae60;
-}
-.row.blue {
-  background: #2980b9;
-}
-@media screen and (max-width: 580px) {
-  .row {
-    padding: 14px 0 7px;
-    display: block;
-  }
-  .row.header {
-    padding: 0;
-    height: 6px;
-  }
-  .row.header .cell {
-    display: none;
-  }
-  .row .cell {
-    margin-bottom: 10px;
-  }
-  .row .cell:before {
-    margin-bottom: 3px;
-    content: attr(data-title);
-    min-width: 98px;
-    font-size: 10px;
-    line-height: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: #969696;
-    display: block;
-  }
-}
+    @media screen and (max-width: 580px) {
+      .table {
+        display: block;
+      }
+    }
 
-.cell {
-  padding: 6px 12px;
-  display: table-cell;
-}
+    .row {
+      display: table-row;
+      background: #f6f6f6;
+    }
 
-.cell1 {
-    width: 300px;
-}
-.cell2 {
-    <!-- width: 10%; -->
-}
+    .row:nth-of-type(odd) {
+      background: #e9e9e9;
+    }
 
-@media screen and (max-width: 580px) {
-  .cell {
-    padding: 2px 16px;
-    display: block;
-  }
-}
+    .row.header {
+      font-weight: 900;
+      color: #ffffff;
+      background: #ea6153;
+    }
+
+    .row.green {
+      background: #27ae60;
+    }
+
+    .row.blue {
+      background: #2980b9;
+    }
+
+    @media screen and (max-width: 580px) {
+      .row {
+        padding: 14px 0 7px;
+        display: block;
+      }
+
+      .row.header {
+        padding: 0;
+        height: 6px;
+      }
+
+      .row.header .cell {
+        display: none;
+      }
+
+      .row .cell {
+        margin-bottom: 10px;
+      }
+
+      .row .cell:before {
+        margin-bottom: 3px;
+        content: attr(data-title);
+        min-width: 98px;
+        font-size: 10px;
+        line-height: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #969696;
+        display: block;
+      }
+    }
+
+    .cell {
+      padding: 6px 12px;
+      display: table-cell;
+    }
+
+    .cell1 {
+      width: 300px;
+    }
+
+    .cell2 {
+      < !-- width: 10%;
+      -->
+    }
+
+    @media screen and (max-width: 580px) {
+      .cell {
+        padding: 2px 16px;
+        display: block;
+      }
+    }
 
 
-/* Customize the label (the container) */
-.container {
-  display: block;
-  position: relative;
-  padding-left: 35px;
-  padding-top: 2px;
-  margin-bottom: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
+    /* Customize the label (the container) */
+    .container {
+      display: block;
+      position: relative;
+      padding-left: 35px;
+      padding-top: 2px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
 
-/* Hide the browser's default checkbox */
-.container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
+    /* Hide the browser's default checkbox */
+    .container input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
 
-/* Create a custom checkbox */
-.checkmark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 25px;
-  width: 25px;
-  background-color: #eee;
-}
-.checkmark.header-checkmark {
-    background-color: #2196F3;
-}
+    /* Create a custom checkbox */
+    .checkmark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 25px;
+      width: 25px;
+      background-color: #eee;
+      border: solid #2196F3 2px;
+    }
 
-<!-- .container:hover input ~ .checkmark.header-checkmark { -->
-  <!-- background-color: #509ee9; -->
-<!-- } -->
+    .checkmark.header-checkmark {
+      background-color: #2196F3;
+    }
 
-<!-- /* On mouse-over, add a grey background color */ -->
-<!-- .container:hover input ~ .checkmark { -->
-  <!-- background-color: #ccc; -->
-<!-- } -->
 
-/* When the checkbox is checked, add a blue background */
-.container input:checked ~ .checkmark {
-  background-color: #2196F3;
-}
+    /* When the checkbox is checked, add a blue background */
+    .container input:checked~.checkmark {
+      background-color: #2196F3;
+    }
 
-/* Create the checkmark/indicator (hidden when not checked) */
-.checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
+    /* Create the checkmark/indicator (hidden when not checked) */
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
 
-/* Show the checkmark when checked */
-.container input:checked ~ .checkmark:after {
-  display: block;
-}
+    /* Show the checkmark when checked */
+    .container input:checked~.checkmark:after {
+      display: block;
+    }
 
-/* Style the checkmark/indicator */
-.container .checkmark:after {
-  left: 9px;
-  top: 5px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 3px 3px 0;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
-}
-
-</style>
+    /* Style the checkmark/indicator */
+    .container .checkmark:after {
+      left: 9px;
+      top: 5px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      -webkit-transform: rotate(45deg);
+      -ms-transform: rotate(45deg);
+      transform: rotate(45deg);
+    }
+  </style>
 </head>
+
 <body>
 
-<br>
+  <br>
 
-<h3><a href="javascript:postpopup()">Вивести друковану форму</a></h3>
+  <h3><a href="javascript:postpopup()">Вивести друковану форму</a></h3>
 
-<div class="wrapper">
-  
-  {% if parceldata['zoning']|length > 0  %}
-  <div class="table">
-  
-    <div class="row header blue">
-      <div class="cell">
-        <label class="container">&nbsp;Зонінг
-            <input id="zoning-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
-        </label>
+  <div class="wrapper">
+
+    {% if parceldata['zoning']|length > 0 %}
+    <div class="table">
+
+      <div class="row header blue">
+        <div class="cell">
+          <label class="container">&nbsp;Зонінг 1
+            <input id="zoning-checkbox" type="checkbox" checked="checked"><span
+              class="checkmark header-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
       </div>
-      <div class="cell cell2">
-      </div>
-    </div>
 
-    {% for row in parceldata['zoning'] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+      {% for row in parceldata['zoning'] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             {% if row[2] == 'nolnk' %}
-                {{ row[0] }} - {{ row[1] }}
+            {{ row[0] }} - {{ row[1] }}
             {% else %}
-                <a href="#" onclick="window.open('https://gisserver.gapu.local/docs/{{ row[2] }}.htm', 
+            <a href="#" onclick="window.open('https://gisserver.gapu.local/docs/{{ row[2] }}.htm', 
                     'newwindow',
                     'width=700,height=700,top=180,left=260');
-                    return false;" 
-                target="_blank">{{ row[0] }} - {{ row[1] }}</a>
+                    return false;" target="_blank">{{ row[0] }} - {{ row[1] }}</a>
             {% endif %}
-            <input type="checkbox" checked="checked" class="zng-strings" _prnstr="{{ row[3] }}"><span class="checkmark"></span>
-        </label>
-      </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+            <input type="checkbox" class="zng-strings" _prnstr="{{ row[3] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
 
-  {% if parceldata['hist'][0] or parceldata['hist'][1] or parceldata['hist'][2] or parceldata['hist'][3] %}
-  <div class="table">
-  
-    <div class="row header blue">
-      <div class="cell">
-        <label class="container">&nbsp;
+        <span class="line-geom" data-poly-type="zoning" style="display:none;">{{ row[4]|tojson }}</span>
+
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if parceldata['hist'][0] or parceldata['hist'][1] or parceldata['hist'][2] or parceldata['hist'][3] %}
+    <div class="table">
+
+      <div class="row header blue">
+        <div class="cell">
+          <label class="container">&nbsp;
             Зони історико-культурного призначення
             <input id="hist-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
-        </label>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
       </div>
-      <div class="cell cell2">
-      </div>
-    </div>
-    
-    {% if parceldata['hist'][0] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+
+      {% if parceldata['hist'][0] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             Територія історичних ареалів
-            <input id="hist1" type="checkbox" checked="checked" _prnstr="{{ parceldata['hist_text1'] }}"><span class="checkmark"></span>
-        </label>
+            <input id="hist1" type="checkbox" _prnstr="{{ parceldata['hist_text1'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
+      {% endif %}
 
-    {% if parceldata['hist'][1] or parceldata['hist'][2] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+      {% if parceldata['hist'][1] or parceldata['hist'][2] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             {{ parceldata['hist_text21'] }}
-            <input id="hist2" type="checkbox" checked="checked" _prnstr="{{ parceldata['hist_text2'] }}"><span class="checkmark"></span>
-        </label>
+            <input id="hist2" type="checkbox" _prnstr="{{ parceldata['hist_text2'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
+      {% endif %}
 
-    {% if parceldata['hist'][3] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+      {% if parceldata['hist'][3] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             Зони об'єктів природно-заповідного фонду
-            <input id="hist3" type="checkbox" checked="checked" _prnstr="{{ parceldata['hist_text3'] }}"><span class="checkmark"></span>
-        </label>
+            <input id="hist3" type="checkbox" _prnstr="{{ parceldata['hist_text3'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
-      <div class="cell" data-title="data">
-      </div>
+      {% endif %}
+
     </div>
     {% endif %}
 
-  </div>
-  {% endif %}
+    {% if parceldata['red_lines']|length > 0 %}
+    <div class="table">
 
-  {% if parceldata['red_lines']|length > 0  %}
-  <div class="table">
-  
-    <div class="row header blue">
-      <div class="cell cell1">
-        <label class="container">&nbsp;
+      <div class="row header blue">
+        <div class="cell cell1">
+          <label class="container">&nbsp;
             Червоні лінії
-            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}" _prnhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
-        </label>
+            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}"
+              _prnhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
       </div>
-      <div class="cell cell2">
-      </div>
-    </div>
 
-    {% for row in parceldata['red_lines'] %}
-    <div class="row data-row">
-      <div class="cell cell1" data-title="id">
-        <label class="container">{{ row[1] }}
-            <input type="checkbox" checked="checked" class="rl-strings-{{ row[0] }}" _prnstr="{{ row[2] }}"><span class="checkmark"></span>
-        </label>
-      </div>
-      <div class="cell" data-title="data">
-        {{ row[2] }}
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+      {% for row in parceldata['red_lines'] %}
+      <div class="row data-row">
+        <div class="cell cell1" data-title="id">
+          <label class="container">{{ row[1] }}
+            <input type="checkbox" class="rl-strings-{{ row[0] }}" _prnstr="{{ row[2] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+          {{ row[2] }}
+        </div>
 
-  {% if parceldata['pzsvs']|length > 0  %}
-  <div class="table">
-  
-    <div class="row header blue">
-      <div class="cell cell1">
-        <label class="container">&nbsp;ПЗС та ВЗ
-            <input id="pzsvs-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span class="checkmark header-checkmark"></span>
-        </label>
-      </div>
-      <div class="cell cell2">
-      </div>
-    </div>
+        <span class="line-geom" data-poly-type="redlines" style="display:none;">{{ row[3]|tojson }}</span>
 
-    {% for row in parceldata['pzsvs'] %}
-    <div class="row data-row">
-      <div class="cell cell1" data-title="id">
-        <label class="container">{{ row[0] }}
-            <input type="checkbox" checked="checked" class="pzsvs-strings" _prnstr="{{ row[1] }}"><span class="checkmark"></span>
-        </label>
       </div>
-      <div class="cell" data-title="data">
-        {{ row[1] }}
-      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-  {% endif %}
- 
-  {% if parceldata['prot_text'] != ' - '  %}
-  <div class="table">
-  
-    <div class="row header blue">
-      <div class="cell cell1">
-        <label class="container">&nbsp;Санітарно-захисні зони
-            <input id="prot-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['prot_text'] }}"><span class="checkmark header-checkmark"></span>
-        </label>
-      </div>
-      <div class="cell cell2">
-      </div>
-    </div>
+    {% endif %}
 
-    {% for row in parceldata['prot'] %}
-    <div class="row data-row">
-      <div class="cell cell1" data-title="id">
-        <label class="container">{{ row[0] }}
-            <input type="checkbox" checked="checked" class="prot-strings" _prnstr="{{ row[1] }}"><span class="checkmark"></span>
-        </label>
+    {% if parceldata['pzsvs']|length > 0 %}
+    <div class="table">
+
+      <div class="row header blue">
+        <div class="cell cell1">
+          <label class="container">&nbsp;ПЗС та ВЗ
+            <input id="pzsvs-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span
+              class="checkmark header-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
       </div>
-      <div class="cell" data-title="data">
-        {{ row[1] }}
+
+      {% for row in parceldata['pzsvs'] %}
+      <div class="row data-row">
+        <div class="cell cell1" data-title="id">
+          <label class="container">{{ row[0] }}
+            <input type="checkbox" class="pzsvs-strings" _prnstr="{{ row[1] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+          {{ row[1] }}
+        </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-  {% endif %}
- 
-  {% if parceldata['brd'][0] or parceldata['brd'][1] or parceldata['brd'][2] %}
-  <div class="table">
-  
-    <div class="row header blue">
-      <div class="cell">
-        <label class="container">&nbsp;
+    {% endif %}
+
+    {% if parceldata['prot_text'] != ' - ' %}
+    <div class="table">
+
+      <div class="row header blue">
+        <div class="cell cell1">
+          <label class="container">&nbsp;Санітарно-захисні зони
+            <input id="prot-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['prot_text'] }}"><span
+              class="checkmark header-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
+      </div>
+
+      {% for row in parceldata['prot'] %}
+      <div class="row data-row">
+        <div class="cell cell1" data-title="id">
+          <label class="container">{{ row[0] }}
+            <input type="checkbox" class="prot-strings" _prnstr="{{ row[1] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+          {{ row[1] }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if parceldata['brd'][0] or parceldata['brd'][1] or parceldata['brd'][2] %}
+    <div class="table">
+
+      <div class="row header blue">
+        <div class="cell">
+          <label class="container">&nbsp;
             Інші планування обмежень
             <input id="brd-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
-        </label>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
       </div>
-      <div class="cell cell2">
-      </div>
-    </div>
-    
-    {% if parceldata['brd'][0] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+
+      {% if parceldata['brd'][0] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             Межі лісового господарства
-            <input id="brd1" type="checkbox" checked="checked" _prnstr="{{ parceldata['brd_text1'] }}"><span class="checkmark"></span>
-        </label>
+            <input id="brd1" type="checkbox" _prnstr="{{ parceldata['brd_text1'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
-  
-    {% if parceldata['brd'][1] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+      {% endif %}
+
+      {% if parceldata['brd'][1] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             Території, що не підлягають забудові
-            <input id="brd2" type="checkbox" checked="checked" _prnstr="{{ parceldata['brd_text2'] }}"><span class="checkmark"></span>
-        </label>
+            <input id="brd2" type="checkbox" _prnstr="{{ parceldata['brd_text2'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
-  
-    {% if parceldata['brd'][2] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+      {% endif %}
+
+      {% if parceldata['brd'][2] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             Об’єкти зеленого господарства
-            <input id="brd3" type="checkbox" checked="checked" _prnstr="{{ parceldata['brd_text3'] }}"><span class="checkmark"></span>
-        </label>
+            <input id="brd3" type="checkbox" _prnstr="{{ parceldata['brd_text3'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
-      <div class="cell" data-title="data">
-      </div>
+      {% endif %}
+
     </div>
     {% endif %}
 
-  </div>
-  {% endif %}
+    {% if parceldata['other_docs'][0] or parceldata['other_docs'][1] %}
+    <div class="table">
 
-  {% if parceldata['other_docs'][0] or parceldata['other_docs'][1] %}
-  <div class="table">
-  
-    <div class="row header blue">
-      <div class="cell">
-        <label class="container">&nbsp;
-            Наявність раніше виданих або розглянутих документів 
+      <div class="row header blue">
+        <div class="cell">
+          <label class="container">&nbsp;
+            Наявність раніше виданих або розглянутих документів
             <input id="otd-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
-        </label>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
       </div>
-      <div class="cell cell2">
-      </div>
-    </div>
-    
-    {% if parceldata['other_docs'][0] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
+
+      {% if parceldata['other_docs'][0] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
             Містобудівні умови та обмеження забудови
-            <input id="otd1" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text1'] }}"><span class="checkmark"></span>
-        </label>
+            <input id="otd1" type="checkbox" _prnstr="{{ parceldata['otdocs_text1'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
-      <div class="cell" data-title="data">
+      {% endif %}
+
+      {% if parceldata['other_docs'][1] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
+            Будівельні паспорти
+            <input id="otd2" type="checkbox" _prnstr="{{ parceldata['otdocs_text2'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
       </div>
+      {% endif %}
+
+      {% if parceldata['other_docs'][2] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
+            Паспорта прив’язки тимчасової споруди
+            <input id="otd3" type="checkbox" _prnstr="{{ parceldata['otdocs_text3'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
+      </div>
+      {% endif %}
+
+      {% if parceldata['other_docs'][4] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
+            Протокол засідання архітектурно-містобудівної ради
+            <input id="otd4" type="checkbox" _prnstr="{{ parceldata['otdocs_text4'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
+      </div>
+      {% endif %}
+
+      {% if parceldata['other_docs'][4] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
+            Містобудівні висновки або витяги з містобудівної документації
+            <input id="otd5" type="checkbox" _prnstr="{{ parceldata['otdocs_text5'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
+      </div>
+      {% endif %}
+
+      {% if parceldata['other_docs'][5] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;
+            Наявність дозволів
+            <input id="otd6" type="checkbox" _prnstr="{{ parceldata['otdocs_text6'] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
+      </div>
+      {% endif %}
+
     </div>
     {% endif %}
 
-    {% if parceldata['other_docs'][1] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
-            Будівельні паспорти
-            <input id="otd2" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text2'] }}"><span class="checkmark"></span>
-        </label>
-      </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
-  
-    {% if parceldata['other_docs'][2] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
-            Паспорта прив’язки тимчасової споруди 
-            <input id="otd3" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text3'] }}"><span class="checkmark"></span>
-        </label>
-      </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
-  
-    {% if parceldata['other_docs'][4] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
-            Протокол засідання архітектурно-містобудівної ради
-            <input id="otd4" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text4'] }}"><span class="checkmark"></span>
-        </label>
-      </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
-  
-    {% if parceldata['other_docs'][4] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
-            Містобудівні висновки або витяги з містобудівної документації
-            <input id="otd5" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text5'] }}"><span class="checkmark"></span>
-        </label>
-      </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
-  
-    {% if parceldata['other_docs'][5] %}
-    <div class="row data-row">
-      <div class="cell" data-title="id">
-        <label class="container">&nbsp;
-            Наявність дозволів
-            <input id="otd6" type="checkbox" checked="checked" _prnstr="{{ parceldata['otdocs_text6'] }}"><span class="checkmark"></span>
-        </label>
-      </div>
-      <div class="cell" data-title="data">
-      </div>
-    </div>
-    {% endif %}
-  
   </div>
-  {% endif %}
- 
-</div>
 
 </body>
+
 </html>
 
 <script>
 
-$('#zoning-checkbox').change(function() { 
+  $(document).ready(function() {
+    // on loading window, reset graphics broker
+    geom_data = {
+        is_full: false,
+        geom: ''
+      };
+
+      $.ajax({
+        url: '/render_poly',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(geom_data),
+        success: function (response) {
+          // alert('Ответ от сервера: ' + response);
+        },
+        error: function (xhr, status, error) {
+          console.error('Ошибка запроса:', error);
+        }
+      });
+
+  });
+  
+
+  $('#zoning-checkbox').change(function () {
     $(this).parents('.table').find('.data-row').toggle()
-});
+  });
 
-$('#hist-checkbox').change(function() { 
-    $(this).parents('.table').find('.data-row').toggle() 
-});
+  $('#hist-checkbox').change(function () {
+    $(this).parents('.table').find('.data-row').toggle()
+  });
 
-$('#red_lines-checkbox').change(function() { 
-    $(this).parents('.table').find('.data-row').toggle() 
-});
+  $('#red_lines-checkbox').change(function () {
+    $(this).parents('.table').find('.data-row').toggle()
+  });
 
-$('#pzsvs-checkbox').change(function() { 
-    $(this).parents('.table').find('.data-row').toggle() 
-});
+  $('#pzsvs-checkbox').change(function () {
+    $(this).parents('.table').find('.data-row').toggle()
+  });
 
-$('#prot-checkbox').change(function() { 
-    $(this).parents('.table').find('.data-row').toggle() 
-});
+  $('#prot-checkbox').change(function () {
+    $(this).parents('.table').find('.data-row').toggle()
+  });
 
-$('#brd-checkbox').change(function() { 
-    $(this).parents('.table').find('.data-row').toggle() 
-});
+  $('#brd-checkbox').change(function () {
+    $(this).parents('.table').find('.data-row').toggle()
+  });
 
-$('#otd-checkbox').change(function() { 
-    $(this).parents('.table').find('.data-row').toggle() 
-});
+  $('#otd-checkbox').change(function () {
+    $(this).parents('.table').find('.data-row').toggle()
+  });
 
-function postpopup() {
+
+  document.querySelectorAll('input[type="checkbox"] + span.str-checkmark').forEach(function (span) {
+    span.addEventListener('click', function (event) {
+      let current_input = event.target.previousElementSibling;
+      let inputs = document.querySelectorAll('input[type="checkbox"] + span.str-checkmark');
+
+      // disable all checkboxes except the current
+      inputs.forEach(function (span) {
+        let input = span.previousElementSibling;
+        if (input !== current_input) {
+          input.checked = false;
+        }
+      });
+
+      geom_data = {
+        is_full: false,
+        type: '',
+        geom: ''
+      };
+
+      // checked before (!) processing this click
+      if (!current_input.checked) {
+        let data_row = $(this).closest('.data-row');
+        // find element with class "line-geom" inside parent element
+        let zng_geom_elt = data_row.find('.line-geom');
+        let zng_geom = zng_geom_elt.text();
+        let zng_type = zng_geom_elt.attr('data-poly-type');
+
+        if (zng_geom.trim() !== "") {
+          geom_data.is_full = true;
+          geom_data.poly_type = zng_type;
+          geom_data.geom = zng_geom;
+        }
+      }
+
+      $.ajax({
+        url: '/render_poly',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(geom_data),
+        success: function (response) {
+          // alert('Ответ от сервера: ' + response);
+        },
+        error: function (xhr, status, error) {
+          console.error('Ошибка запроса:', error);
+        }
+      });
+
+
+    });
+  });
+
+  function postpopup() {
     if ($('#zoning-checkbox:checked').length > 0) {
-        var zng_text = '';
-        $('.zng-strings:checked').each(function() {
-            // console.log($(this).attr('_prnstr'));
-            zng_text = zng_text+$(this).attr('_prnstr')+'<br>';
-        });
-        window.zng_text = zng_text;
+      var zng_text = '';
+      $('.zng-strings:checked').each(function () {
+        // console.log($(this).attr('_prnstr'));
+        zng_text = zng_text + $(this).attr('_prnstr') + '<br>';
+      });
+      window.zng_text = zng_text;
     }
     else {
-        window.zng_text = '';
+      window.zng_text = '';
     }
-	window.line_text = [];
-	if (window.zng_text.length > 0) {
-		window.line_text.push(' - Зонінг;');
-	}
-    
+    window.line_text = [];
+    if (window.zng_text.length > 0) {
+      window.line_text.push(' - Зонінг;');
+    }
+
     if ($('#red_lines-checkbox:checked').length > 0) {
-        var rl_type = $('#red_lines-checkbox').attr('_rltype');
-        var rl_text = $('#red_lines-checkbox').attr('_prnhdr');
-        if (parseInt(rl_type) < 3) {
-            $('.rl-strings-'+rl_type+':checked').each(function() {
-                rl_text = rl_text + $(this).attr('_prnstr')+'; ';
-            });
-        }
-        window.rl_text = rl_text;
+      var rl_type = $('#red_lines-checkbox').attr('_rltype');
+      var rl_text = $('#red_lines-checkbox').attr('_prnhdr');
+      if (parseInt(rl_type) < 3) {
+        $('.rl-strings-' + rl_type + ':checked').each(function () {
+          rl_text = rl_text + $(this).attr('_prnstr') + '; ';
+        });
+      }
+      window.rl_text = rl_text;
     }
     else {
-        window.rl_text = '';
+      window.rl_text = '';
     }
-	if (window.rl_text.length > 0) {
-		window.line_text.push(' - Червоні лінії Діпроміста;');
-	}
-    
+    if (window.rl_text.length > 0) {
+      window.line_text.push(' - Червоні лінії Діпроміста;');
+    }
+
     if ($('#hist-checkbox:checked').length > 0) {
-        var hist_text = $('#hist1:checked').attr('_prnstr');
-        if (hist_text) {
-            window.hist1_text = hist_text;
-        }
-        else {
-            window.hist1_text = ' - ';
-        }
-        
-        hist_text = $('#hist2:checked').attr('_prnstr');
-        if (hist_text) {
-            window.hist2_text = hist_text;
-        }
-        else {
-            window.hist2_text = ' - ';
-        }
-        
-        var hist_text = $('#hist3:checked').attr('_prnstr');
-        if (hist_text) {
-            window.hist3_text = hist_text;
-        }
-        else {
-            window.hist3_text = ' - ';
-        }
+      var hist_text = $('#hist1:checked').attr('_prnstr');
+      if (hist_text) {
+        window.hist1_text = hist_text;
+      }
+      else {
+        window.hist1_text = ' - ';
+      }
+
+      hist_text = $('#hist2:checked').attr('_prnstr');
+      if (hist_text) {
+        window.hist2_text = hist_text;
+      }
+      else {
+        window.hist2_text = ' - ';
+      }
+
+      var hist_text = $('#hist3:checked').attr('_prnstr');
+      if (hist_text) {
+        window.hist3_text = hist_text;
+      }
+      else {
+        window.hist3_text = ' - ';
+      }
     }
     else {
-        window.hist1_text = ' - ';
-        window.hist2_text = ' - ';
-        window.hist3_text = ' - ';
+      window.hist1_text = ' - ';
+      window.hist2_text = ' - ';
+      window.hist3_text = ' - ';
     }
-    
-	if (window.hist1_text != ' - ' || window.hist2_text != ' - ' || window.hist3_text != ' - ') {
-		window.line_text.push(' - Зони історико-культурного призначення;');
-	}
+
+    if (window.hist1_text != ' - ' || window.hist2_text != ' - ' || window.hist3_text != ' - ') {
+      window.line_text.push(' - Зони історико-культурного призначення;');
+    }
 
     if ($('#pzsvs-checkbox:checked').length > 0) {
-        var pzsvs_text = $('#pzsvs-checkbox').attr('_prnhdr');
-        $('.pzsvs-strings:checked').each(function() {
-            pzsvs_text = pzsvs_text + $(this).attr('_prnstr')+'; ';
-        });
-        window.pzsvs_text = pzsvs_text;
+      var pzsvs_text = $('#pzsvs-checkbox').attr('_prnhdr');
+      $('.pzsvs-strings:checked').each(function () {
+        pzsvs_text = pzsvs_text + $(this).attr('_prnstr') + '; ';
+      });
+      window.pzsvs_text = pzsvs_text;
     }
     else {
-        window.pzsvs_text = ' - ';
+      window.pzsvs_text = ' - ';
     }
-	if (window.pzsvs_text != ' - ') {
-		window.line_text.push(' - Прибережні_захисні смуги;');
-	}
+    if (window.pzsvs_text != ' - ') {
+      window.line_text.push(' - Прибережні_захисні смуги;');
+    }
 
     if ($('#prot-checkbox:checked').length > 0) {
-        var prot_text = $('#prot-checkbox').attr('_prnhdr');
-        $('.prot-strings:checked').each(function() {
-            prot_text = prot_text + $(this).attr('_prnstr')+'; ';
-        });
-        window.prot_text = prot_text;
+      var prot_text = $('#prot-checkbox').attr('_prnhdr');
+      $('.prot-strings:checked').each(function () {
+        prot_text = prot_text + $(this).attr('_prnstr') + '; ';
+      });
+      window.prot_text = prot_text;
     }
     else {
-        window.prot_text = ' - ';
+      window.prot_text = ' - ';
     }
-	if (window.prot_text != ' - ') {
-		window.line_text.push(' - Розрахункові санітарні зони;');
-	}
-    
+    if (window.prot_text != ' - ') {
+      window.line_text.push(' - Розрахункові санітарні зони;');
+    }
+
     if ($('#brd-checkbox:checked').length > 0) {
-        var brd_text = $('#brd1:checked').attr('_prnstr');
-        if (brd_text) {
-            window.brd1_text = brd_text;
-        }
-        else {
-            window.brd1_text = ' - ';
-        }
-        
-        var brd_text = $('#brd2:checked').attr('_prnstr');
-        if (brd_text) {
-            window.brd2_text = brd_text;
-        }
-        else {
-            window.brd2_text = ' - ';
-        }
-        
-        var brd_text = $('#brd3:checked').attr('_prnstr');
-        if (brd_text) {
-            window.brd3_text = brd_text;
-        }
-        else {
-            window.brd3_text = ' - ';
-        }
-        
-    }
-    else {
+      var brd_text = $('#brd1:checked').attr('_prnstr');
+      if (brd_text) {
+        window.brd1_text = brd_text;
+      }
+      else {
         window.brd1_text = ' - ';
+      }
+
+      var brd_text = $('#brd2:checked').attr('_prnstr');
+      if (brd_text) {
+        window.brd2_text = brd_text;
+      }
+      else {
         window.brd2_text = ' - ';
+      }
+
+      var brd_text = $('#brd3:checked').attr('_prnstr');
+      if (brd_text) {
+        window.brd3_text = brd_text;
+      }
+      else {
         window.brd3_text = ' - ';
+      }
+
     }
-	if (window.brd1_text != ' - ') {
-		window.line_text.push(' - Межи лісового господарства;');
-	}
-	if (window.brd2_text != ' - ') {
-		window.line_text.push(' - Межи території, яка не підлягає забудові;');
-	}
-	if (window.brd3_text != ' - ') {
-		window.line_text.push(' - Межи об’єкта зеленого господарства;');
-	}
-	
-	if ($('#otd-checkbox:checked').length > 0) {
-        var otd_text = $('#otd1:checked').attr('_prnstr');
-        if (otd_text) {
-            window.otd1_text = otd_text;
-        }
-        else {
-            window.otd1_text = ' - ';
-        }
-		
-        var otd_text = $('#otd2:checked').attr('_prnstr');
-        if (otd_text) {
-            window.otd2_text = otd_text;
-        }
-        else {
-            window.otd2_text = ' - ';
-        }
-		
-        var otd_text = $('#otd3:checked').attr('_prnstr');
-        if (otd_text) {
-            window.otd3_text = otd_text;
-        }
-        else {
-            window.otd3_text = ' - ';
-        }
-		
-        var otd_text = $('#otd4:checked').attr('_prnstr');
-        if (otd_text) {
-            window.otd4_text = otd_text;
-        }
-        else {
-            window.otd4_text = ' - ';
-        }
-		
-        var otd_text = $('#otd5:checked').attr('_prnstr');
-        if (otd_text) {
-            window.otd5_text = otd_text;
-        }
-        else {
-            window.otd5_text = ' - ';
-        }
-		
-        var otd_text = $('#otd6:checked').attr('_prnstr');
-        if (otd_text) {
-            window.otd6_text = otd_text;
-        }
-        else {
-            window.otd6_text = ' - ';
-        }
-		
-	}
     else {
+      window.brd1_text = ' - ';
+      window.brd2_text = ' - ';
+      window.brd3_text = ' - ';
+    }
+    if (window.brd1_text != ' - ') {
+      window.line_text.push(' - Межи лісового господарства;');
+    }
+    if (window.brd2_text != ' - ') {
+      window.line_text.push(' - Межи території, яка не підлягає забудові;');
+    }
+    if (window.brd3_text != ' - ') {
+      window.line_text.push(' - Межи об’єкта зеленого господарства;');
+    }
+
+    if ($('#otd-checkbox:checked').length > 0) {
+      var otd_text = $('#otd1:checked').attr('_prnstr');
+      if (otd_text) {
+        window.otd1_text = otd_text;
+      }
+      else {
         window.otd1_text = ' - ';
+      }
+
+      var otd_text = $('#otd2:checked').attr('_prnstr');
+      if (otd_text) {
+        window.otd2_text = otd_text;
+      }
+      else {
         window.otd2_text = ' - ';
+      }
+
+      var otd_text = $('#otd3:checked').attr('_prnstr');
+      if (otd_text) {
+        window.otd3_text = otd_text;
+      }
+      else {
         window.otd3_text = ' - ';
+      }
+
+      var otd_text = $('#otd4:checked').attr('_prnstr');
+      if (otd_text) {
+        window.otd4_text = otd_text;
+      }
+      else {
         window.otd4_text = ' - ';
+      }
+
+      var otd_text = $('#otd5:checked').attr('_prnstr');
+      if (otd_text) {
+        window.otd5_text = otd_text;
+      }
+      else {
         window.otd5_text = ' - ';
+      }
+
+      var otd_text = $('#otd6:checked').attr('_prnstr');
+      if (otd_text) {
+        window.otd6_text = otd_text;
+      }
+      else {
         window.otd6_text = ' - ';
-	
-	}
-	if (window.otd1_text != ' - ') {
-		window.line_text.push(' - Межи території на яку були надані містобудівні умови та обмеження;');
-	}
-	if (window.otd2_text != ' - ') {
-		window.line_text.push(' - Межи території на якій був надан будівельний паспорт;');
-	}
-	if (window.otd2_text != ' - ') {
-		window.line_text.push(' - Межи території  на яку було видано паспорт прив`язки;');
-	}
-	if (window.otd2_text != ' - ') {
-		window.line_text.push(' - Межи території на якій розглядалась можливість розташування об’єкта згідно протоколу містобудівної ради;');
-	}
-	if (window.otd2_text != ' - ') {
-		window.line_text.push(' - Межи ділянки, де розглядались матеріали проекту землеустрою щодо відведення зазначеної земельної ділянки;');
-	}
-	if (window.otd2_text != ' - ') {
-		window.line_text.push(' - Межи ділянки, де були надані дозволи;');
-	}
+      }
+
+    }
+    else {
+      window.otd1_text = ' - ';
+      window.otd2_text = ' - ';
+      window.otd3_text = ' - ';
+      window.otd4_text = ' - ';
+      window.otd5_text = ' - ';
+      window.otd6_text = ' - ';
+
+    }
+    if (window.otd1_text != ' - ') {
+      window.line_text.push(' - Межи території на яку були надані містобудівні умови та обмеження;');
+    }
+    if (window.otd2_text != ' - ') {
+      window.line_text.push(' - Межи території на якій був надан будівельний паспорт;');
+    }
+    if (window.otd2_text != ' - ') {
+      window.line_text.push(' - Межи території  на яку було видано паспорт прив`язки;');
+    }
+    if (window.otd2_text != ' - ') {
+      window.line_text.push(' - Межи території на якій розглядалась можливість розташування об’єкта згідно протоколу містобудівної ради;');
+    }
+    if (window.otd2_text != ' - ') {
+      window.line_text.push(' - Межи ділянки, де розглядались матеріали проекту землеустрою щодо відведення зазначеної земельної ділянки;');
+    }
+    if (window.otd2_text != ' - ') {
+      window.line_text.push(' - Межи ділянки, де були надані дозволи;');
+    }
 
 
-    window.open('/static/prnfrmline.html','printform','scrollbars=no,menubar=no,height=700,width=700,left=340, top=100,resizable=yes,toolbar=no,status=no');
-}
+    window.open('/static/prnfrmline.html', 'printform', 'scrollbars=no,menubar=no,height=700,width=700,left=340, top=100,resizable=yes,toolbar=no,status=no');
+  }
 
 </script>

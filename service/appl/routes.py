@@ -171,7 +171,7 @@ def __get_kcp_code():
     from layers.kcp 
     
     '''.format(cadnum='')
-    print(sql)
+    # print(sql)
     try:
         con = psycopg2.connect(connstring)
         cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -180,7 +180,7 @@ def __get_kcp_code():
         select = cur.fetchone()
         data = {}
         if select:
-            print(select)
+            # print(select)
             cols = list(map(lambda x: x[0], cur.description)) #
             for key in cols:
                 data[key] = select.get(key)
@@ -206,7 +206,7 @@ def __parcel(parcel_id=None, con=None):
         *, public.st_asgeojson(public.st_transform(geom,4326)) as geomjson
     from layers.v_diljanky where cadnum = '{cadnum}'
     '''.format(cadnum=parcel_id)
-    print(sql)
+    # print(sql)
     result['status'] = False
     try:
         con = psycopg2.connect(connstring)
@@ -216,7 +216,7 @@ def __parcel(parcel_id=None, con=None):
         select = cur.fetchone()
         data = {}
         if select:
-            print(select)
+            # print(select)
             cols = list(map(lambda x: x[0], cur.description)) #
             #select.insert(0, tuple(cols))  # insert elements by list.insert(index, new_item) method если нужно вставить заголовки в начало списка
             for key in cols:
@@ -581,7 +581,6 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     for zng_r in zng:
         if len(zng_r[10].strip()) > 0:
-            # print(len(zng_r[9].strip()))
             zng_str = zng_r[9]+'|'+zng_r[10]
             zng_lst.append(zng_str)
     
@@ -604,7 +603,7 @@ def __parcelgeom(parcel_geom=None, con=None):
             zng_grp[idx].append('nolnk')
 
         zng_grp[idx].append(zng_str[0]+' '+zng_str[1])
-        
+
     rl_str = []
     rl_grp = []
     rl_type = 10
@@ -777,7 +776,9 @@ def __parcelgeoml(parcel_geom=None, con=None):
     parceldata['area'] = select[1]
 
     sql = '''
-    SELECT *
+    SELECT
+        *,
+        ST_AsGeoJSON(geom) as geojson
     FROM arcgis.public."червоні_лінії_діпроміста" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
@@ -790,7 +791,9 @@ def __parcelgeoml(parcel_geom=None, con=None):
         rl.append(row)
 
     sql = '''
-    SELECT *
+    SELECT
+        *,
+        ST_AsGeoJSON(geom) as geojson
     FROM arcgis.public."інші_розроблені_червоні_лінії" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
@@ -803,7 +806,9 @@ def __parcelgeoml(parcel_geom=None, con=None):
         rlo.append(row)
 
     sql = '''
-    SELECT *
+    SELECT 
+        *,
+        ST_AsGeoJSON(geom) as geojson
     FROM arcgis.public."зонінг" n
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
         '''.format(geom=parcel_geom)
@@ -1089,7 +1094,6 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     for zng_r in zng:
         if len(zng_r[10].strip()) > 0:
-            # print(len(zng_r[9].strip()))
             zng_str = zng_r[9]+'|'+zng_r[10]
             zng_lst.append(zng_str)
     
@@ -1113,31 +1117,58 @@ def __parcelgeoml(parcel_geom=None, con=None):
             zng_grp[idx].append('nolnk')
 
         zng_grp[idx].append(zng_str[0]+' '+zng_str[1])
+
+    # Добавление значений из zng[13] в zng_grp
+    for zng_r in zng:
+        for idx, zng_str in enumerate(zng_grp):
+            if zng_str[0] == zng_r[9]:
+                zng_grp[idx].append(zng_r[13])
         
-    rl_str = []
     rl_grp = []
+    rl_geom = []
     rl_type = 10
     rl_text = ''
+
+    # вместо плоской строки rl_str используем rl_geom {"str": '3|-|Червоні лінії Діпромісто', "geom": rlr[5]}
     for rlr in rl:
-        rl_str.append('3|-|Червоні лінії Діпромісто')
+        rl_geom.append({"str": '3|-|Червоні лінії Діпромісто', "geom": rlr[5]})
         if rl_type > 3:
             rl_type = 3
-        
+
     for rlor in rlo:
         if len(rlor[5].strip()) > 0:
-            rl_str.append('1|Рішення міської ради №|'+rlor[5]+' від '+rlor[3].strftime('%d.%m.%Y'))
+            rl_geom.append({"str": '1|Рішення міської ради №|' + rlor[5] + ' від ' + rlor[3].strftime('%d.%m.%Y'), "geom": rlor[10]})
             if rl_type > 1:
                 rl_type = 1
         elif len(rlor[8].strip()) > 0:
-            rl_str.append('2|Протокол містобудівної ради №|'+rlor[8].replace('от', 'від'))
+            rl_geom.append({"str": '2|Протокол містобудівної ради №|' + rlor[8].replace('от', 'від'), "geom": rlor[10]})
             if rl_type > 2:
                 rl_type = 2
 
-    rl_str = list(set(rl_str))
-    rl_str.sort()
+    # удаляем дубликаты и сортируем rl_geom по полю "str"
+    unique_rl_geom = {}
+    for item in rl_geom:
+        if item['str'] not in unique_rl_geom:
+            unique_rl_geom[item['str']] = item
 
-    for rlr in rl_str:
-        rl_grp.append(rlr.split('|'))
+    rl_geom = list(unique_rl_geom.values())
+    rl_geom.sort(key=lambda x: x['str'])
+
+    # разделяем rl_geom[idx]['str'] на массив и добавляем ему в хвост элемент rl_geom[idx]['geom']
+    for item in rl_geom:
+        split_str = item['str'].split('|')
+        split_str.append(str(item['geom']))
+        rl_grp.append(split_str)
+
+
+    # Вывод результатов
+    print('')
+    print("rlo:", rlo)
+    print('')
+    print("rl_geom:", rl_geom)
+    print('')
+    print("rl_grp:", rl_grp)
+    print('')
 
     if rl_type == 1:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ: <br>'
@@ -1309,8 +1340,6 @@ def __find_trs(find_addr, find_custmr):
     if (find_custmr=='empt_param'):
         find_custmr=''
     
-    print('find trasse')
-
     con = psycopg2.connect(connstring)
     cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
@@ -1324,7 +1353,6 @@ def __find_trs(find_addr, find_custmr):
             lower(tr."шифр") like '%{addr}%'
         LIMIT 20
         '''.format(addr=find_addr.lower())
-    # print(sql)
     
     cur.execute(sql)
     rows = cur.fetchall()
@@ -1333,6 +1361,31 @@ def __find_trs(find_addr, find_custmr):
         # print(row)
         
     return jsonify(rows)
+
+@app.route('/render_poly', methods=['POST'])
+def __render_poly():
+    req_data = request.get_json()
+    # print(req_data)
+    
+    if req_data.get('is_full'):
+        proxy_data = {
+            "res": "ok",
+            "poly_type": req_data['poly_type'],
+            "data": req_data['geom']
+        }
+    else:
+        proxy_data = {
+            "res": "empty"
+        }
+
+    file_path = r"E:\temp\exchange\geom.txt"
+
+    SHARED_FILE_PATH = "shared_file.txt"
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(proxy_data, file, ensure_ascii=False, indent=4)
+
+    return f"Файл будет записан по пути: {file_path}"
+
 
 @app.errorhandler(404)
 def page_not_found(error):
