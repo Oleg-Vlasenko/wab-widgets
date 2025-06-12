@@ -577,28 +577,28 @@
 
 <script>
 
-  $(document).ready(function() {
+  $(document).ready(function () {
     // on loading window, reset graphics broker
     geom_data = {
-        is_full: false,
-        geom: ''
-      };
+      is_full: false,
+      geom: ''
+    };
 
-      $.ajax({
-        url: '/render_poly',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(geom_data),
-        success: function (response) {
-          // alert('Ответ от сервера: ' + response);
-        },
-        error: function (xhr, status, error) {
-          console.error('Ошибка запроса:', error);
-        }
-      });
+    $.ajax({
+      url: '/render_poly',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(geom_data),
+      success: function (response) {
+        // alert('Ответ от сервера: ' + response);
+      },
+      error: function (xhr, status, error) {
+        console.error('Ошибка запроса:', error);
+      }
+    });
 
   });
-  
+
 
   $('#zoning-checkbox').change(function () {
     $(this).parents('.table').find('.data-row').toggle()
@@ -632,53 +632,103 @@
   document.querySelectorAll('input[type="checkbox"] + span.str-checkmark').forEach(function (span) {
     span.addEventListener('click', function (event) {
       let current_input = event.target.previousElementSibling;
-      let inputs = document.querySelectorAll('input[type="checkbox"] + span.str-checkmark');
 
-      // disable all checkboxes except the current
-      inputs.forEach(function (span) {
-        let input = span.previousElementSibling;
-        if (input !== current_input) {
-          input.checked = false;
+      let geom_data_list = {
+        is_full: false,
+        geoms: []
+      };
+
+      document.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+        // учитывать уже выбранные + текущий, который будет выбран после клика
+        let is_active = input.checked || (input === current_input && !input.checked);
+
+        if (is_active) {
+          let data_row = $(input).closest('.data-row');
+          let zng_geom_elt = data_row.find('.line-geom');
+          let zng_geom = zng_geom_elt.text().trim();
+          let zng_type = zng_geom_elt.attr('data-poly-type');
+
+          if (zng_geom !== "") {
+            geom_data_list.geoms.push({
+              poly_type: zng_type,
+              geom: zng_geom
+            });
+          }
         }
       });
 
-      geom_data = {
-        is_full: false,
-        type: '',
-        geom: ''
-      };
-
-      // checked before (!) processing this click
-      if (!current_input.checked) {
-        let data_row = $(this).closest('.data-row');
-        // find element with class "line-geom" inside parent element
-        let zng_geom_elt = data_row.find('.line-geom');
-        let zng_geom = zng_geom_elt.text();
-        let zng_type = zng_geom_elt.attr('data-poly-type');
-
-        if (zng_geom.trim() !== "") {
-          geom_data.is_full = true;
-          geom_data.poly_type = zng_type;
-          geom_data.geom = zng_geom;
-        }
+      // если хотя бы один валидный геом найден — ставим is_full = true
+      if (geom_data_list.geoms.length > 0) {
+        geom_data_list.is_full = true;
       }
+
+      console.log(geom_data_list);
+      return;
 
       $.ajax({
         url: '/render_poly',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify(geom_data),
+        data: JSON.stringify(geom_data_list),
         success: function (response) {
-          // alert('Ответ от сервера: ' + response);
+          // alert('Server response: ' + response);
         },
         error: function (xhr, status, error) {
-          console.error('Ошибка запроса:', error);
+          console.error('Request error:', error);
         }
       });
-
-
     });
   });
+
+  // document.querySelectorAll('input[type="checkbox"] + span.str-checkmark').forEach(function (span) {
+  //   span.addEventListener('click', function (event) {
+  //     let current_input = event.target.previousElementSibling;
+  //     let inputs = document.querySelectorAll('input[type="checkbox"] + span.str-checkmark');
+
+  //     // disable all checkboxes except the current
+  //     inputs.forEach(function (span) {
+  //       let input = span.previousElementSibling;
+  //       if (input !== current_input) {
+  //         input.checked = false;
+  //       }
+  //     });
+
+  //     geom_data = {
+  //       is_full: false,
+  //       type: '',
+  //       geom: ''
+  //     };
+
+  //     // check if the checkbox was unchecked before the click — the browser updates its state after this handler
+  //     if (!current_input.checked) {
+  //       let data_row = $(this).closest('.data-row');
+  //       // find element with class "line-geom" inside parent element
+  //       let zng_geom_elt = data_row.find('.line-geom');
+  //       let zng_geom = zng_geom_elt.text();
+  //       let zng_type = zng_geom_elt.attr('data-poly-type');
+
+  //       if (zng_geom.trim() !== "") {
+  //         geom_data.is_full = true;
+  //         geom_data.poly_type = zng_type;
+  //         geom_data.geom = zng_geom;
+  //       }
+  //     }
+
+  //     $.ajax({
+  //       url: '/render_poly',
+  //       type: 'POST',
+  //       contentType: 'application/json',
+  //       data: JSON.stringify(geom_data),
+  //       success: function (response) {
+  //         // alert('Ответ от сервера: ' + response);
+  //       },
+  //       error: function (xhr, status, error) {
+  //         console.error('Ошибка запроса:', error);
+  //       }
+  //     });
+
+  //   });
+  // });
 
   function postpopup() {
     if ($('#zoning-checkbox:checked').length > 0) {

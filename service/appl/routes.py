@@ -1365,6 +1365,43 @@ def __find_trs(find_addr, find_custmr):
 @app.route('/render_poly', methods=['POST'])
 def __render_poly():
     req_data = request.get_json()
+    
+    file_path = r"E:\temp\exchange\geom.txt"
+    
+    if req_data.get('is_full') and isinstance(req_data.get('geoms'), list):
+        proxy_data = {
+            "res": "ok",
+            "items": []
+        }
+
+        for item in req_data['geoms']:
+            poly_type = item.get('poly_type', '')
+            geom = item.get('geom', '')
+
+            if poly_type and geom:
+                proxy_data["items"].append({
+                    "poly_type": poly_type,
+                    "data": geom
+                })
+
+        if not proxy_data["items"]:  # если список пустой, всё равно считаем как empty
+            proxy_data = {
+                "res": "empty"
+            }
+    else:
+        proxy_data = {
+            "res": "empty"
+        }
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(proxy_data, file, ensure_ascii=False, indent=4)
+
+    return f"Файл будет записан по пути: {file_path}"
+
+
+@app.route('/render_poly_old', methods=['POST'])
+def __render_poly_old():
+    req_data = request.get_json()
     # print(req_data)
     
     if req_data.get('is_full'):
