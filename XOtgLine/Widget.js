@@ -26,6 +26,12 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
     "esri/geometry/Polygon",
     "esri/geometry/Polyline",
+    "esri/geometry/Point",
+
+    "esri/symbols/SimpleMarkerSymbol",
+    "esri/symbols/TextSymbol",
+    "esri/symbols/Font",
+
     "esri/graphic",
     "esri/graphicsUtils",
 
@@ -55,6 +61,13 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
         Polygon,
         Polyline,
+        Point,
+
+        SimpleMarkerSymbol,
+        TextSymbol,
+        Font,
+
+
         Graphic,
         graphicsUtils,
         SpatialReference, projection,
@@ -198,6 +211,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 xhr.send();
 
                 xhr.onload = function () {
+
                     try {
                         var res = JSON.parse(xhr.response);
 
@@ -220,7 +234,9 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                 let coords_str = JSON.parse(item.data);  // JSON в строке
                                 let obj_coords = JSON.parse(coords_str); // Геометрия (GeoJSON)
                                 let coords = obj_coords.coordinates[0];  // Для Polygon / LineString
-                                // console.log('obj_coords:', obj_coords);
+                                // Для размещения надписи используем первую координату первой линии/кольца:
+                                let labelCoord = coords[0];
+                                let labelPoint = new Point(labelCoord[0], labelCoord[1], srMap);
 
                                 if (poly_type === 'zoning') {
                                     let myPolygon = {
@@ -245,7 +261,25 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                     __mg_map.graphics.add(gra);
                                     graphics.push(gra);
 
-                                } else if (poly_type === 'redlines') {
+                                    // Добавляем фон для надписи – белый квадрат.
+                                    let bgSymbol = new SimpleMarkerSymbol("square", 40, null, new Color([255, 255, 255, 255]));
+                                    // Можно убрать контур:
+                                    bgSymbol.setOutline(null);
+                                    let bgGraphic = new Graphic(labelPoint, bgSymbol);
+                                    __mg_map.graphics.add(bgGraphic);
+
+                                    // Добавляем текст "тест 1" поверх фона.
+                                    let textSymbol = new TextSymbol("Зонінг")
+                                        .setColor(new Color([0, 0, 0]))
+                                        .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                        .setOffset(0, -120); // отодвигаем надпись выше геометрии
+
+                                    let textGraphic = new Graphic(labelPoint, textSymbol);
+                                    __mg_map.graphics.add(textGraphic);
+
+                                } 
+                                
+                                else if (poly_type === 'redlines') {
                                     let myPolyline = {
                                         geometry: {
                                             paths: [coords],
@@ -263,6 +297,14 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                     __mg_map.graphics.add(gra);
                                     graphics.push(gra);
 
+                                    let textSymbol = new TextSymbol("Червона лінія")
+                                        .setColor(new Color([200, 20, 60, 255]))
+                                        .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                        .setOffset(0, 20); // отодвигаем надпись выше геометрии
+
+                                    let textGraphic = new Graphic(labelPoint, textSymbol);
+                                    __mg_map.graphics.add(textGraphic);
+
                                     // Вторая линия (трасса) из window.__mg_test2
                                     if (window.__mg_test2) {
                                         let tcr = JSON.parse(window.__mg_test2);
@@ -272,7 +314,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                                 spatialReference: srMap
                                             },
                                             symbol: {
-                                                color: [0, 180, 120, 255], 
+                                                color: [0, 180, 120, 255],
                                                 width: 5,
                                                 type: 'esriSLS',
                                                 style: 'esriSLSSolid'
@@ -282,6 +324,18 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                         let gra2 = new Graphic(myPolyline2);
                                         __mg_map.graphics.add(gra2);
                                         graphics.push(gra2);
+
+                                        // Располагаем метку для второй линии тоже в первой точке трассы
+                                        let tcrFirst = tcr.coordinates[0];
+                                        let labelPoint2 = new Point(tcrFirst[0], tcrFirst[1], srMap);
+
+                                        let textSymbol2 = new TextSymbol("Обрана траса")
+                                            .setColor(new Color([0, 80, 32, 255]))
+                                            .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                            .setOffset(0, 20); // отодвигаем надпись выше геометрии
+
+                                        let textGraphic2 = new Graphic(labelPoint2, textSymbol2);
+                                        __mg_map.graphics.add(textGraphic2);
                                     }
                                 }
 
@@ -290,7 +344,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                             }
                         });
 
-                        // Установка охвата
+                        // Установка охвата карты
                         try {
                             if (graphics.length > 0) {
                                 let extent = graphicsUtils.graphicsExtent(graphics).expand(1.2);
@@ -303,6 +357,10 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     } catch (err) {
                         console.log('Ошибка разбора JSON:', err);
                     }
+
+
+
+
                 };
             },
 
