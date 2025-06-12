@@ -230,6 +230,10 @@
         </div>
       </div>
 
+      <pre style="background:#f7f7f7; border:1px solid #ccc; padding:10px;">
+        {{ parceldata['zoning'] | tojson(indent=2) }}
+      </pre>
+
       {% for row in parceldata['zoning'] %}
       <div class="row data-row">
         <div class="cell" data-title="id">
@@ -680,55 +684,6 @@
     });
   });
 
-  // document.querySelectorAll('input[type="checkbox"] + span.str-checkmark').forEach(function (span) {
-  //   span.addEventListener('click', function (event) {
-  //     let current_input = event.target.previousElementSibling;
-  //     let inputs = document.querySelectorAll('input[type="checkbox"] + span.str-checkmark');
-
-  //     // disable all checkboxes except the current
-  //     inputs.forEach(function (span) {
-  //       let input = span.previousElementSibling;
-  //       if (input !== current_input) {
-  //         input.checked = false;
-  //       }
-  //     });
-
-  //     geom_data = {
-  //       is_full: false,
-  //       type: '',
-  //       geom: ''
-  //     };
-
-  //     // check if the checkbox was unchecked before the click — the browser updates its state after this handler
-  //     if (!current_input.checked) {
-  //       let data_row = $(this).closest('.data-row');
-  //       // find element with class "line-geom" inside parent element
-  //       let zng_geom_elt = data_row.find('.line-geom');
-  //       let zng_geom = zng_geom_elt.text();
-  //       let zng_type = zng_geom_elt.attr('data-poly-type');
-
-  //       if (zng_geom.trim() !== "") {
-  //         geom_data.is_full = true;
-  //         geom_data.poly_type = zng_type;
-  //         geom_data.geom = zng_geom;
-  //       }
-  //     }
-
-  //     $.ajax({
-  //       url: '/render_poly',
-  //       type: 'POST',
-  //       contentType: 'application/json',
-  //       data: JSON.stringify(geom_data),
-  //       success: function (response) {
-  //         // alert('Ответ от сервера: ' + response);
-  //       },
-  //       error: function (xhr, status, error) {
-  //         console.error('Ошибка запроса:', error);
-  //       }
-  //     });
-
-  //   });
-  // });
 
   function postpopup() {
     if ($('#zoning-checkbox:checked').length > 0) {

@@ -88,7 +88,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             _symPoly: null,
             urlParcelService: 'http://192.168.0.115:5020/parcelgeom/',
             _gs: 'http://192.168.0.115:6080/arcgis/rest/services/Geometry/GeometryServer',
-            //null, // own geometry service
             dtbox: '',
 
 
@@ -100,16 +99,14 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             postMixInProperties: function () {
                 this.inherited(arguments);
                 this.jimuNls = window.jimuNls;
-                //this.config.isOperationalLayer = !!this.config.isOperationalLayer;
-                //point locale decimal
-                //this.numberDecimal = dojoI18n.getLocalization("dojo.cldr", "number", window.dojoConfig.locale).decimal;
+
                 console.log(esriConfig.defaults.geometryService)
+
                 if (esriConfig.defaults.geometryService) {
                     this._gs = esriConfig.defaults.geometryService;
                 } else {
                     this._gs = new GeometryService(this._defaultGsUrl);
                 }
-
             },
 
             postCreate: function () {
@@ -232,9 +229,9 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                             spatialReference: srMap
                                         },
                                         symbol: {
-                                            color: [0, 0, 255, 64],
+                                            color: [0, 255, 255, 180], // яркая светлая заливка (неоновый голубой)
                                             outline: {
-                                                color: [0, 0, 255, 255],
+                                                color: [0, 100, 255, 255], // тёмно-синий, но насыщенный и яркий
                                                 width: 3,
                                                 type: 'esriSLS',
                                                 style: 'esriSLSSolid'
@@ -255,7 +252,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                             spatialReference: srMap
                                         },
                                         symbol: {
-                                            color: [158, 0, 22, 255],
+                                            color: [200, 20, 60, 255],
                                             width: 5,
                                             type: 'esriSLS',
                                             style: 'esriSLSSolid'
@@ -275,7 +272,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                                 spatialReference: srMap
                                             },
                                             symbol: {
-                                                color: [0, 102, 255, 255],
+                                                color: [0, 180, 120, 255], 
                                                 width: 5,
                                                 type: 'esriSLS',
                                                 style: 'esriSLSSolid'
@@ -484,6 +481,16 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     geojson2 = geojson1.replace("]]]", "]]");
 
                     dom.byId('message').innerHTML = geojson2;
+
+                    if (graphic && graphic.geometry && graphic.geometry.paths) {
+                        let geojson = {
+                            type: "LineString",
+                            coordinates: graphic.geometry.paths[0]  // извлекаем первую линию (или объедини если нужно)
+                        };
+
+                        window.__mg_test2 = JSON.stringify(geojson);
+                    }
+
                     showPopUp('http://192.168.17.45:5024/parcelgeoml/' + geojson2);
 
                     window.__mg_drawtoolbar.deactivate();

@@ -1162,13 +1162,13 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
 
     # Вывод результатов
-    print('')
-    print("rlo:", rlo)
-    print('')
-    print("rl_geom:", rl_geom)
-    print('')
-    print("rl_grp:", rl_grp)
-    print('')
+    # print('')
+    # print("rlo:", rlo)
+    # print('')
+    # print("rl_geom:", rl_geom)
+    # print('')
+    # print("rl_grp:", rl_grp)
+    # print('')
 
     if rl_type == 1:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ: <br>'
