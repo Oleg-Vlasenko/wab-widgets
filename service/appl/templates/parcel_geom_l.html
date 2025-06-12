@@ -230,9 +230,9 @@
         </div>
       </div>
 
-      <pre style="background:#f7f7f7; border:1px solid #ccc; padding:10px;">
+      <!-- <pre style="background:#f7f7f7; border:1px solid #ccc; padding:10px;">
         {{ parceldata['zoning'] | tojson(indent=2) }}
-      </pre>
+      </pre> -->
 
       {% for row in parceldata['zoning'] %}
       <div class="row data-row">
@@ -253,7 +253,7 @@
         <div class="cell" data-title="data">
         </div>
 
-        <span class="line-geom" data-poly-type="zoning" style="display:none;">{{ row[4]|tojson }}</span>
+        <span class="line-geom" data-poly-type="zoning" style="display:none;">{{ row[4:] | tojson }}</span>
 
       </div>
       {% endfor %}
@@ -634,6 +634,7 @@
 
 
   document.querySelectorAll('input[type="checkbox"] + span.str-checkmark').forEach(function (span) {
+
     span.addEventListener('click', function (event) {
       let current_input = event.target.previousElementSibling;
 
@@ -643,31 +644,47 @@
       };
 
       document.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
-        // учитывать уже выбранные + текущий, который будет выбран после клика
         let is_active = input.checked || (input === current_input && !input.checked);
 
         if (is_active) {
           let data_row = $(input).closest('.data-row');
           let zng_geom_elt = data_row.find('.line-geom');
-          let zng_geom = zng_geom_elt.text().trim();
+          let zng_geom_raw = zng_geom_elt.text().trim();
           let zng_type = zng_geom_elt.attr('data-poly-type');
 
-          if (zng_geom !== "") {
-            geom_data_list.geoms.push({
-              poly_type: zng_type,
-              geom: zng_geom
-            });
+          if (zng_geom_raw !== "") {
+            try {
+              let parsed = JSON.parse(zng_geom_raw);
+              if (Array.isArray(parsed)) {
+                // это массив GeoJSON-объектов
+                parsed.forEach(g => {
+                  geom_data_list.geoms.push({
+                    poly_type: zng_type,
+                    geom: JSON.stringify(g)
+                  });
+                });
+              } else {
+                // это одиночный GeoJSON
+                geom_data_list.geoms.push({
+                  poly_type: zng_type,
+                  geom: zng_geom_raw
+                });
+              }
+            } catch (e) {
+              console.warn("GeoJSON parsing error:", e);
+              // fallback — строка без парсинга
+              geom_data_list.geoms.push({
+                poly_type: zng_type,
+                geom: zng_geom_raw
+              });
+            }
           }
         }
       });
 
-      // если хотя бы один валидный геом найден — ставим is_full = true
       if (geom_data_list.geoms.length > 0) {
         geom_data_list.is_full = true;
       }
-
-      console.log(geom_data_list);
-      return;
 
       $.ajax({
         url: '/render_poly',
@@ -682,6 +699,9 @@
         }
       });
     });
+
+
+
   });
 
 
