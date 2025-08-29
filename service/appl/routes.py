@@ -50,6 +50,71 @@ def index():
     #user = {'username': 'miguel'}
     return render_template("index.html", title='Home Page')
 
+@app.route('/rlupload/<parcel_geom>', methods=['GET'])
+def red_lines_upload(parcel_geom=None, con=None):
+
+    result = {}
+    if not parcel_geom:
+        parcel_id = ""
+        return "", 200 # 500
+
+    environ = request.environ
+    method = request.method
+
+    con = psycopg2.connect(connstring)
+    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    parceldata = {}
+
+    sql = '''
+    SELECT json_build_object(
+        'type',       'FeatureCollection',
+        'features',   json_agg(
+            json_build_object(
+                'type',       'Feature',
+                'geometry',   ST_AsGeoJSON(n.geom)::json
+            )
+        )
+    ) AS geojson
+    FROM arcgis.public."червоні_лінії_діпроміста" n
+    WHERE ST_Intersects(
+        n.geom,
+        ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry, 0)
+    );
+    '''.format(geom=parcel_geom)
+
+    cur.execute(sql)
+    rl = cur.fetchone()[0]
+    
+    parceldata["rl"] = rl
+    
+    # убрали из запроса
+    # 'properties', to_jsonb(n) - 'geom'
+
+    sql = '''
+    SELECT json_build_object(
+        'type',       'FeatureCollection',
+        'features',   json_agg(
+            json_build_object(
+                'type',       'Feature',
+                'geometry',   ST_AsGeoJSON(n.geom)::json
+            )
+        )
+    ) AS geojson
+    FROM arcgis.public."інші_розроблені_червоні_лінії" n
+    WHERE ST_Intersects(
+        n.geom,
+        ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry, 0)
+    );
+    '''.format(geom=parcel_geom)
+
+    cur.execute(sql)
+    rlo = cur.fetchone()[0]
+    
+    parceldata["rlo"] = rlo
+    
+    return render_template('rl_upload.html', parceldata=parceldata)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1162,13 +1227,13 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
 
     # Вывод результатов
-    # print('')
-    # print("rlo:", rlo)
-    # print('')
-    # print("rl_geom:", rl_geom)
-    # print('')
-    # print("rl_grp:", rl_grp)
-    # print('')
+    print('')
+    print("rlo:", rlo)
+    print('')
+    print("rl_geom:", rl_geom)
+    print('')
+    print("rl_grp:", rl_grp)
+    print('')
 
     if rl_type == 1:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ: <br>'
@@ -1422,7 +1487,6 @@ def __render_poly_old():
         json.dump(proxy_data, file, ensure_ascii=False, indent=4)
 
     return f"Файл будет записан по пути: {file_path}"
-
 
 @app.errorhandler(404)
 def page_not_found(error):
