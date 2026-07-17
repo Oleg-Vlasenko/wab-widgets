@@ -20,7 +20,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
     "esri/symbols/SimpleFillSymbol",
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
-    // 'dojo/number',
     'dojo/i18n',
     'dojo/i18n!esri/nls/jsapi',
     'dojo/_base/html',
@@ -30,11 +29,9 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
     "dojo/_base/array",
     "dojo/dom",
     'esri/tasks/query',
-
+    "dojo/request/xhr",
     "dojo/domReady!"
-
 ],
-
     function (declare, BaseWidget
         , esriRequest, Geoprocessor, DataFile,
         SimpleLineSymbol, SimpleFillSymbol, SimpleRenderer, Color,
@@ -51,18 +48,12 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
         dojoI18n, esriNlsBundle,
         html, lang,
 
-
         on, array, dom,
-
-        Query
+        Query, xhr
     ) {
-        //To create a widget, you need to derive from BaseWidget.
         return declare([BaseWidget], {
-            // Custom widget code goes here
             baseClass: 'jimu-widget-xotgredline',
-            _defaultGsUrl:
-                '//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer',
-            // TODO: own GeometryServer from config
+            _defaultGsUrl: '//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer',
             _undoManager: null,
             _graphicsLayer: null,
             _objectIdCounter: 1,
@@ -71,95 +62,53 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             _polygonLayer: null,
             _labelLayer: null,
             drawtoolbar: null,
-            //_drawtoolbar: new Draw(this.map),
             _dt: null,
             _symPoly: null,
             urlParcelService: 'http://192.168.0.115:5020/parcelgeom/',
             _gs: 'http://192.168.0.115:6080/arcgis/rest/services/Geometry/GeometryServer',
-            //null, // own geometry service
             dtbox: '',
-
-
-            //this property is set by the framework when widget is loaded.
             name: 'XOtgRedLine',
-            //methods to communication with app container:
-
-            postCreate: function () {
-                this.inherited(arguments);
-
-                // теперь attach-point точно существует
-                if (this.layersInfoNode) {
-                    window.__mg_layersInfoNode = this.layersInfoNode;
-                } else {
-                    console.error("layersInfoNode не найден!");
-                }
-            },
 
             postMixInProperties: function () {
                 this.inherited(arguments);
                 this.jimuNls = window.jimuNls;
-                //this.config.isOperationalLayer = !!this.config.isOperationalLayer;
-                //point locale decimal
-                //this.numberDecimal = dojoI18n.getLocalization("dojo.cldr", "number", window.dojoConfig.locale).decimal;
-                console.log(esriConfig.defaults.geometryService)
                 if (esriConfig.defaults.geometryService) {
                     this._gs = esriConfig.defaults.geometryService;
                 } else {
                     this._gs = new GeometryService(this._defaultGsUrl);
                 }
-
             },
 
             postCreate: function () {
                 this.inherited(arguments);
-                console.log('postCreate');
-                //this._initGraphicsLayers();
-            },
+                var self = this;
+                xhr('/flask_proxy/get_config.php', {
+                    handleAs: 'json'
+                }).then(function (cfg) {
+                    window.__mg_widgetConfig = cfg;
+                }, function (error) {
+                    console.error('Failed to load config:', error);
+                });
 
+                if (this.layersInfoNode) {
+                    window.__mg_layersInfoNode = this.layersInfoNode;
+                }
+            },
 
             _initGraphicsLayers: function () {
                 this._graphicsLayer = new GraphicsLayer();
-
-                // if (!this.config.isOperationalLayer) {
-                //this._polygonLayer = new GraphicsLayer();
-                //this.map.addLayer(this._polygonLayer);
-                //this.map.addLayer(this._labelLayer);
-                // }
             },
 
             _removeEmptyLayers: function () {
-                //if (this._polygonLayer && this._polygonLayer.graphics.length === 0) {
-                //    this.map.removeLayer(this._polygonLayer);
-                //    this._polygonLayer = null;
-                //}
             },
+
             startDraw: function () {
                 this.map.graphics.clear();
             },
 
-
-
             _onBtnPolygonClick: function () {
                 var draw_mode = 'polygon';
-
                 this.map.graphics.clear();
-
-                //this.drawtoolbar = new Draw(this.map)
-                //this.drawtoolbar.on("draw-end", this._addToMap)
-
-                window.__mg_drawtoolbar = this.drawtoolbar;
-                this.map.setInfoWindowOnClick(false);
-                this.drawtoolbar.activate(draw_mode);  //'polygon' Draw['POLYGON']
-                window.__mg_draw_mode = draw_mode;
-                this.map.hideZoomSlider();
-
-            },
-
-            _onBtnPolyLineClick: function () {
-                var draw_mode = 'polyline';
-
-                this.map.graphics.clear();
-
                 window.__mg_drawtoolbar = this.drawtoolbar;
                 this.map.setInfoWindowOnClick(false);
                 this.drawtoolbar.activate(draw_mode);
@@ -167,37 +116,28 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.hideZoomSlider();
             },
 
+            _onBtnPolyLineClick: function () {
+                var draw_mode = 'polyline';
+                this.map.graphics.clear();
+                window.__mg_drawtoolbar = this.drawtoolbar;
+                this.map.setInfoWindowOnClick(false);
+                this.drawtoolbar.activate(draw_mode);
+                window.__mg_draw_mode = draw_mode;
+                this.map.hideZoomSlider();
+            },
 
             _onBtnClearClick: function () {
-                var layersInfo = {};
-
                 this.map.graphics.clear();
                 dom.byId('message').innerHTML = "";
             },
 
-            addToMap: function (evt, Query) {
-                function showPopUp(url, parameters) {
-                    popUpObj = window.open(url,
-                        "ModalPopUp",
-                        "popup=yes," +
-                        "toolbar=no," +
-                        "scrollbars=no," +
-                        "location=no," +
-                        "statusbar=no," +
-                        "menubar=no," +
-                        "resizable=0," +
-                        "width=700," +
-                        "height=680," +
-                        "left = 490," +
-                        "top=100");
-                }
+            addToMap: function (evt) {
+                var self = this;
+                var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';
 
-                var symbol;
-                symbol = new SimpleFillSymbol();
+                self.map.showZoomSlider();
 
-                this.map.showZoomSlider();
-
-                this._symPoly = new SimpleFillSymbol(
+                self._symPoly = new SimpleFillSymbol(
                     SimpleFillSymbol.STYLE_SOLID,
                     new SimpleLineSymbol(
                         SimpleLineSymbol.STYLE_DASHDOT,
@@ -207,42 +147,35 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     new Color([255, 255, 0, 0.1])
                 );
 
-                var graphic = new Graphic(evt.geometry, this._symPoly);
-                this.map.graphics.add(graphic);
+                var graphic = new Graphic(evt.geometry, self._symPoly);
+                self.map.graphics.add(graphic);
 
-                geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}'
+                var geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}';
 
-                // dom.byId('message').innerHTML = geojson2;
-                
-                showPopUp('http://192.168.17.45:5024/rlupload/' + geojson0);
+                var popUpObj = window.open(flaskUrl + '/rlupload/' + geojson0,
+                    "ModalPopUp",
+                    "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=680,left=490,top=100");
 
                 window.__mg_drawtoolbar.deactivate();
-                this.map.setInfoWindowOnClick(true);
+                self.map.setInfoWindowOnClick(true);
             },
 
             startup: function () {
-
                 this.inherited(arguments);
-                //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
-                var map = this.map;
+                var self = this;
+                var map = self.map;
                 var srMap = map.extent.spatialReference;
-                //console.log(map.extent.spatialReference);
-                console.log('startup');
 
-
-                // coordinateFormatter spatial reference 
-                const geoSpatialReference = new SpatialReference({
+                var geoSpatialReference = new SpatialReference({
                     wkid: 4326
                 });
 
                 var redSpatialReference = new SpatialReference({
-                    wkid: 3395 //spatial reference of 500K rasters
+                    wkid: 3395
                 });
 
-                this.drawtoolbar = new Draw(this.map)
-                this.drawtoolbar.on("draw-end", this.addToMap)
-
-            },
-
+                self.drawtoolbar = new Draw(self.map);
+                self.drawtoolbar.on("draw-end", lang.hitch(self, self.addToMap));
+            }
         });
-    }); 
+    });

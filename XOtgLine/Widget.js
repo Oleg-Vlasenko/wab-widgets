@@ -1,21 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-var showPopUp = function (url, parameters) {
-    popUpObj = window.open(url,
-        "ModalPopUp",
-        "popup=yes," +
-        "toolbar=no," +
-        "scrollbars=no," +
-        "location=no," +
-        "statusbar=no," +
-        "menubar=no," +
-        "resizable=0," +
-        "width=700," +
-        "height=500," +
-        "left = 490," +
-        "top=100");
-};
-
 define(['dojo/_base/declare', 'jimu/BaseWidget'
     , "esri/request", "esri/tasks/Geoprocessor", "esri/tasks/DataFile",
     "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol",
@@ -43,7 +27,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
     "esri/symbols/SimpleFillSymbol",
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
-    // 'dojo/number',
     'dojo/i18n',
     'dojo/i18n!esri/nls/jsapi',
     'dojo/_base/html',
@@ -52,6 +35,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
     "dojo/on",
     "dojo/_base/array",
     "dojo/dom",
+    "dojo/request/xhr",
     "dojo/domReady!"
 ],
     function (declare, BaseWidget
@@ -79,15 +63,11 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
         html, lang,
 
 
-        on, array, dom
+        on, array, dom, xhr
     ) {
-        //To create a widget, you need to derive from BaseWidget.
         return declare([BaseWidget], {
-            // Custom widget code goes here
             baseClass: 'jimu-widget-xotgline',
-            _defaultGsUrl:
-                '//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer',
-            // TODO: own GeometryServer from config
+            _defaultGsUrl: '//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer',
             _undoManager: null,
             _graphicsLayer: null,
             _objectIdCounter: 1,
@@ -96,25 +76,16 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             _polygonLayer: null,
             _labelLayer: null,
             drawtoolbar: null,
-            //_drawtoolbar: new Draw(this.map),
             _dt: null,
             _symPoly: null,
             urlParcelService: 'http://192.168.0.115:5020/parcelgeom/',
             _gs: 'http://192.168.0.115:6080/arcgis/rest/services/Geometry/GeometryServer',
             dtbox: '',
-
-
-            //this property is set by the framework when widget is loaded.
             name: 'XOtgLine',
-            //methods to communication with app container:
-
 
             postMixInProperties: function () {
                 this.inherited(arguments);
                 this.jimuNls = window.jimuNls;
-
-                console.log(esriConfig.defaults.geometryService)
-
                 if (esriConfig.defaults.geometryService) {
                     this._gs = esriConfig.defaults.geometryService;
                 } else {
@@ -124,10 +95,15 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
             postCreate: function () {
                 this.inherited(arguments);
-                console.log('postCreate');
-                //this._initGraphicsLayers();
+                var self = this;
+                xhr('/flask_proxy/get_config.php', {
+                    handleAs: 'json'
+                }).then(function (cfg) {
+                    window.__mg_widgetConfig = cfg;
+                }, function (error) {
+                    console.error('Failed to load config:', error);
+                });
             },
-
 
             _initGraphicsLayers: function () {
                 this._graphicsLayer = new GraphicsLayer();
@@ -140,27 +116,9 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.graphics.clear();
             },
 
-
-
             _onBtnPolygonClick: function () {
                 var draw_mode = 'polygon';
-
                 this.map.graphics.clear();
-
-                window.__mg_drawtoolbar = this.drawtoolbar;
-                this.map.setInfoWindowOnClick(false);
-                this.drawtoolbar.activate(draw_mode);  //'polygon' Draw['POLYGON']
-                window.__mg_draw_mode = draw_mode;
-                this.map.hideZoomSlider();
-
-                //console.log('polygon');
-            },
-
-            _onBtnPolyLineClick: function () {
-                var draw_mode = 'polyline';
-
-                this.map.graphics.clear();
-
                 window.__mg_drawtoolbar = this.drawtoolbar;
                 this.map.setInfoWindowOnClick(false);
                 this.drawtoolbar.activate(draw_mode);
@@ -168,21 +126,25 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.hideZoomSlider();
             },
 
+            _onBtnPolyLineClick: function () {
+                var draw_mode = 'polyline';
+                this.map.graphics.clear();
+                window.__mg_drawtoolbar = this.drawtoolbar;
+                this.map.setInfoWindowOnClick(false);
+                this.drawtoolbar.activate(draw_mode);
+                window.__mg_draw_mode = draw_mode;
+                this.map.hideZoomSlider();
+            },
 
             _onBtnClearClick: function () {
                 this.map.graphics.clear();
                 dom.byId('message').innerHTML = "";
-
             },
 
             _onBtnSelectedClick: function () {
-                // alert('_onBtnJsonClick');
-
-                var __mg_map = this.map;
-                // selected by user feature on map
+                var self = this;
+                var __mg_map = self.map;
                 var feat = __mg_map.infoWindow.getSelectedFeature();
-
-                console.log(feat._layer.name);
 
                 var layer_name = feat._layer.name;
                 if (layer_name.substring(0, 24) != 'Проекти інженерних мереж') {
@@ -190,64 +152,63 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     return;
                 }
 
-                // for polylines
                 var extent = feat.geometry.getExtent();
                 var center = extent.getCenter();
                 __mg_map.setExtent(extent.expand(2.5));
                 __mg_map.centerAt(center);
 
-                geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(feat.geometry.paths) + '}'
-                geojson1 = geojson0.replace("[[[", "[[");
-                geojson2 = geojson1.replace("]]]", "]]");
+                var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';
 
-                showPopUp('http://192.168.17.45:5024/parcelgeoml/' + geojson2);
+                var geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(feat.geometry.paths) + '}';
+                var geojson1 = geojson0.replace("[[[", "[[");
+                var geojson2 = geojson1.replace("]]]", "]]");
 
+                var popUpObj = window.open(flaskUrl + '/parcelgeoml/' + geojson2,
+                    "ModalPopUp",
+                    "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
             },
 
             _onTest1Click: function () {
-                let __mg_map = this.map;
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/broker.php');
-                xhr.send();
+                var self = this;
+                var __mg_map = self.map;
+                var xhrReq = new XMLHttpRequest();
+                xhrReq.open('GET', '/flask_proxy/broker.php');
+                xhrReq.send();
 
-                xhr.onload = function () {
-
+                xhrReq.onload = function () {
                     try {
-                        var res = JSON.parse(xhr.response);
+                        var res = JSON.parse(xhrReq.response);
 
                         if (res.res === 'empty' || !Array.isArray(res.items) || res.items.length === 0) {
                             alert('Нет выбранного объекта!');
                             return;
                         }
 
-                        console.log('proxy data:', res);
-
                         __mg_map.graphics.clear();
-                        let srMap = __mg_map.extent.spatialReference;
-                        let graphics = [];
+                        var srMap = __mg_map.extent.spatialReference;
+                        var graphics = [];
 
                         res.items.forEach(function (item) {
-                            let poly_type = (item.poly_type || '').trim();
+                            var poly_type = (item.poly_type || '').trim();
                             if (!poly_type || !item.data) return;
 
                             try {
-                                let coords_str = JSON.parse(item.data);  // JSON в строке
-                                let obj_coords = JSON.parse(coords_str); // Геометрия (GeoJSON)
-                                let coords = obj_coords.coordinates[0];  // Для Polygon / LineString
-                                // Для размещения надписи используем первую координату первой линии/кольца:
-                                let labelCoord = coords[0];
-                                let labelPoint = new Point(labelCoord[0], labelCoord[1], srMap);
+                                var coords_str = JSON.parse(item.data);
+                                var obj_coords = JSON.parse(coords_str);
+                                var coords = obj_coords.coordinates[0];
+                                var labelCoord = coords[0];
+                                var labelPoint = new Point(labelCoord[0], labelCoord[1], srMap);
 
                                 if (poly_type === 'zoning') {
-                                    let myPolygon = {
+                                    var myPolygon = {
                                         geometry: {
                                             rings: coords,
                                             spatialReference: srMap
                                         },
                                         symbol: {
-                                            color: [0, 255, 255, 180], // яркая светлая заливка (неоновый голубой)
+                                            color: [0, 255, 255, 180],
                                             outline: {
-                                                color: [0, 100, 255, 255], // тёмно-синий, но насыщенный и яркий
+                                                color: [0, 100, 255, 255],
                                                 width: 3,
                                                 type: 'esriSLS',
                                                 style: 'esriSLSSolid'
@@ -257,30 +218,25 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                         }
                                     };
 
-                                    let gra = new Graphic(myPolygon);
+                                    var gra = new Graphic(myPolygon);
                                     __mg_map.graphics.add(gra);
                                     graphics.push(gra);
 
-                                    // Добавляем фон для надписи – белый квадрат.
-                                    let bgSymbol = new SimpleMarkerSymbol("square", 40, null, new Color([255, 255, 255, 255]));
-                                    // Можно убрать контур:
+                                    var bgSymbol = new SimpleMarkerSymbol("square", 40, null, new Color([255, 255, 255, 255]));
                                     bgSymbol.setOutline(null);
-                                    let bgGraphic = new Graphic(labelPoint, bgSymbol);
+                                    var bgGraphic = new Graphic(labelPoint, bgSymbol);
                                     __mg_map.graphics.add(bgGraphic);
 
-                                    // Добавляем текст "тест 1" поверх фона.
-                                    let textSymbol = new TextSymbol("Зонінг")
+                                    var textSymbol = new TextSymbol("Зонінг")
                                         .setColor(new Color([0, 0, 0]))
                                         .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
-                                        .setOffset(0, -120); // отодвигаем надпись выше геометрии
+                                        .setOffset(0, -120);
 
-                                    let textGraphic = new Graphic(labelPoint, textSymbol);
+                                    var textGraphic = new Graphic(labelPoint, textSymbol);
                                     __mg_map.graphics.add(textGraphic);
 
-                                } 
-                                
-                                else if (poly_type === 'redlines') {
-                                    let myPolyline = {
+                                } else if (poly_type === 'redlines') {
+                                    var myPolyline = {
                                         geometry: {
                                             paths: [coords],
                                             spatialReference: srMap
@@ -293,22 +249,21 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                         }
                                     };
 
-                                    let gra = new Graphic(myPolyline);
+                                    var gra = new Graphic(myPolyline);
                                     __mg_map.graphics.add(gra);
                                     graphics.push(gra);
 
-                                    let textSymbol = new TextSymbol("Червона лінія")
+                                    var textSymbol = new TextSymbol("Червона лінія")
                                         .setColor(new Color([200, 20, 60, 255]))
                                         .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
-                                        .setOffset(0, 20); // отодвигаем надпись выше геометрии
+                                        .setOffset(0, 20);
 
-                                    let textGraphic = new Graphic(labelPoint, textSymbol);
+                                    var textGraphic = new Graphic(labelPoint, textSymbol);
                                     __mg_map.graphics.add(textGraphic);
 
-                                    // Вторая линия (трасса) из window.__mg_test2
                                     if (window.__mg_test2) {
-                                        let tcr = JSON.parse(window.__mg_test2);
-                                        let myPolyline2 = {
+                                        var tcr = JSON.parse(window.__mg_test2);
+                                        var myPolyline2 = {
                                             geometry: {
                                                 paths: [tcr.coordinates],
                                                 spatialReference: srMap
@@ -321,102 +276,88 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                             }
                                         };
 
-                                        let gra2 = new Graphic(myPolyline2);
+                                        var gra2 = new Graphic(myPolyline2);
                                         __mg_map.graphics.add(gra2);
                                         graphics.push(gra2);
 
-                                        // Располагаем метку для второй линии тоже в первой точке трассы
-                                        let tcrFirst = tcr.coordinates[0];
-                                        let labelPoint2 = new Point(tcrFirst[0], tcrFirst[1], srMap);
+                                        var tcrFirst = tcr.coordinates[0];
+                                        var labelPoint2 = new Point(tcrFirst[0], tcrFirst[1], srMap);
 
-                                        let textSymbol2 = new TextSymbol("Обрана траса")
+                                        var textSymbol2 = new TextSymbol("Обрана траса")
                                             .setColor(new Color([0, 80, 32, 255]))
                                             .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
-                                            .setOffset(0, 20); // отодвигаем надпись выше геометрии
+                                            .setOffset(0, 20);
 
-                                        let textGraphic2 = new Graphic(labelPoint2, textSymbol2);
+                                        var textGraphic2 = new Graphic(labelPoint2, textSymbol2);
                                         __mg_map.graphics.add(textGraphic2);
                                     }
                                 }
 
                             } catch (err) {
-                                console.log('Ошибка при обработке одного из объектов:', err);
+                                // ignore individual errors
                             }
                         });
 
-                        // Установка охвата карты
                         try {
                             if (graphics.length > 0) {
-                                let extent = graphicsUtils.graphicsExtent(graphics).expand(1.2);
+                                var extent = graphicsUtils.graphicsExtent(graphics).expand(1.2);
                                 __mg_map.setExtent(extent);
                             }
                         } catch (err) {
-                            console.log('Ошибка при установке охвата карты:', err);
+                            // ignore
                         }
 
                     } catch (err) {
-                        console.log('Ошибка разбора JSON:', err);
+                        // ignore
                     }
-
-
-
-
                 };
             },
 
             _onBtnSearchClick: function () {
+                var self = this;
                 var template = document.getElementById('mg-lines-template-trs');
                 var container = document.getElementById('mg-srch-results-trs');
-                var __mg_map = this.map;
+                var __mg_map = self.map;
                 var __mg_search_res = [];
+                var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';
 
                 var highlightResStr = function (elt) {
                     var html_collect = document.getElementsByClassName('mg-search-block-selected-trs');
                     var selected_blocks = [];
-                    for (i1 = 0; i1 < html_collect.length; i1++) {
+                    for (var i1 = 0; i1 < html_collect.length; i1++) {
                         selected_blocks.push(html_collect[i1]);
                     }
-                    for (i1 = 0; i1 < selected_blocks.length; i1++) {
+                    for (var i1 = 0; i1 < selected_blocks.length; i1++) {
                         selected_blocks[i1].classList.remove('mg-search-block-selected-trs');
                     }
 
                     var html_collect = document.getElementsByClassName('mg-separator-selected');
                     var selected_separators = [];
-                    for (i1 = 0; i1 < html_collect.length; i1++) {
+                    for (var i1 = 0; i1 < html_collect.length; i1++) {
                         selected_separators.push(html_collect[i1]);
                     }
-                    for (i1 = 0; i1 < selected_separators.length; i1++) {
+                    for (var i1 = 0; i1 < selected_separators.length; i1++) {
                         selected_separators[i1].classList.remove('mg-separator-selected');
                     }
 
                     var block = elt.closest('.mg-search-block-trs');
-                    // console.log(block);
                     block.classList.add('mg-search-block-selected-trs');
 
                     var row = elt.closest('.mg-search-row');
                     var separator_1 = row.querySelector('.mg-separator');
-
                     separator_1.classList.add('mg-separator-selected');
 
-                    // не последний элемент
                     if (row.nextSibling) {
                         var separator_2 = row.nextSibling.querySelector('.mg-separator');
                         separator_2.classList.add('mg-separator-selected');
                     }
-
-                    // + набить стили
-                    // + повесить на поиск и открытие 
                 };
 
                 var onCoordsClick = function () {
                     highlightResStr(this);
-
                     __mg_map.graphics.clear();
                     var srMap = __mg_map.extent.spatialReference;
                     var coord_idx = this.getAttribute('mg-coord-idx');
-
-                    console.log(__mg_search_res[coord_idx].coords);
-                    console.log(__mg_search_res);
 
                     var myPolygon = {
                         'geometry': {
@@ -433,27 +374,25 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     };
 
                     var gra = new Graphic(myPolygon);
-
                     __mg_map.graphics.add(gra);
                     try {
                         var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
                         __mg_map.setExtent(extent);
+                    } catch (err) {
+                        // ignore
                     }
-                    catch (err) {
-                        console.log(err);
-                    }
-
                 };
 
                 var onRunProtClick = function () {
                     highlightResStr(this);
-
                     var coord_idx = this.getAttribute('mg-coord-idx');
-                    geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
-                    geojson1 = geojson0.replace("[[[", "[[");
-                    geojson2 = geojson1.replace("]]]", "]]");
+                    var geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
+                    var geojson1 = geojson0.replace("[[[", "[[");
+                    var geojson2 = geojson1.replace("]]]", "]]");
 
-                    showPopUp('http://192.168.17.45:5024/parcelgeoml/' + geojson2);
+                    var popUpObj = window.open(flaskUrl + '/parcelgeoml/' + geojson2,
+                        "ModalPopUp",
+                        "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
                 };
 
                 var onResNameClick = function () {
@@ -466,33 +405,26 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     return;
                 }
 
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_addr_trs=' + req_track);
-                xhr.send();
+                var xhrReq = new XMLHttpRequest();
+                xhrReq.open('GET', '/flask_proxy/index.php?req_addr_trs=' + req_track);
+                xhrReq.send();
 
-                xhr.onload = function () {
+                xhrReq.onload = function () {
                     try {
-                        var res = JSON.parse(xhr.response);
-                        console.log('JSON :');
-                        console.log(res);
-                    }
-                    catch (err) {
+                        var res = JSON.parse(xhrReq.response);
+                    } catch (err) {
                         container.innerHTML = '';
-                        console.log('JSON parse error');
-                        console.log(err);
                         return;
                     }
 
-                    for (i1 = 0; i1 < res.length; i1++) {
+                    for (var i1 = 0; i1 < res.length; i1++) {
                         try {
-                            coords = JSON.parse(res[i1][0]);
-                        }
-                        catch (err) {
+                            var coords = JSON.parse(res[i1].geojson);
+                        } catch (err) {
                             continue;
                         }
-                        sr_res = {
-                            'txt': res[i1][10] + ', ' + res[i1][5] + ', ' + res[i1][6],
-                            // 'coords' : coords.coordinates[0]
+                        var sr_res = {
+                            'txt': res[i1].name + ', ' + res[i1].name_kom + ', ' + res[i1]['шифр'],
                             'coords': coords.coordinates
                         };
                         __mg_search_res.push(sr_res);
@@ -500,97 +432,87 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
                     container.innerHTML = '';
                     var tmpl_block = template.querySelector('span');
-                    for (i1 = 0; i1 < __mg_search_res.length; i1++) {
-                        clone = tmpl_block.cloneNode(true);
-                        res_name = clone.querySelector('.mg-search-txt');
+                    for (var i1 = 0; i1 < __mg_search_res.length; i1++) {
+                        var clone = tmpl_block.cloneNode(true);
+                        var res_name = clone.querySelector('.mg-search-txt');
                         res_name.innerText = __mg_search_res[i1].txt;
                         res_name.addEventListener('click', onResNameClick);
-                        res_coords = clone.querySelector('.mg-search-coords');
+                        var res_coords = clone.querySelector('.mg-search-coords');
                         res_coords.setAttribute('mg-coord-idx', i1.toString());
                         res_coords.addEventListener('click', onCoordsClick);
-                        res_run_prot = clone.querySelector('.mg-run-prot');
+                        var res_run_prot = clone.querySelector('.mg-run-prot');
                         res_run_prot.setAttribute('mg-coord-idx', i1.toString());
                         res_run_prot.addEventListener('click', onRunProtClick);
                         container.appendChild(clone);
-                    };
-                    // console.log(__mg_search_res);
+                    }
                 };
 
-                xhr.onerror = function () { };
-
+                xhrReq.onerror = function () { };
             },
 
             addToMap: function (evt) {
-                var symbol;
-                symbol = new SimpleFillSymbol();
+                var self = this;
+                var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';
 
-                this.map.showZoomSlider();
+                self.map.showZoomSlider();
 
                 if (window.__mg_draw_mode == 'polyline') {
+                    self._symPoly = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([75, 190, 242]), 3);
+                    var graphic = new Graphic(evt.geometry, self._symPoly);
+                    self.map.graphics.add(graphic);
 
-                    this._symPoly = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([75, 190, 242]), 3);
-
-                    //var graphic = new Graphic(evt.geometry, symbol);
-                    var graphic = new Graphic(evt.geometry, this._symPoly);
-                    this.map.graphics.add(graphic);
-
-                    geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}'
-                    geojson1 = geojson0.replace("[[[", "[[");
-                    geojson2 = geojson1.replace("]]]", "]]");
+                    var geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(graphic.geometry.paths) + '}';
+                    var geojson1 = geojson0.replace("[[[", "[[");
+                    var geojson2 = geojson1.replace("]]]", "]]");
 
                     dom.byId('message').innerHTML = geojson2;
 
                     if (graphic && graphic.geometry && graphic.geometry.paths) {
-                        let geojson = {
+                        var geojson = {
                             type: "LineString",
-                            coordinates: graphic.geometry.paths[0]  // извлекаем первую линию (или объедини если нужно)
+                            coordinates: graphic.geometry.paths[0]
                         };
-
                         window.__mg_test2 = JSON.stringify(geojson);
                     }
 
-                    showPopUp('http://192.168.17.45:5024/parcelgeoml/' + geojson2);
+                    var popUpObj = window.open(flaskUrl + '/parcelgeoml/' + geojson2,
+                        "ModalPopUp",
+                        "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
 
                     window.__mg_drawtoolbar.deactivate();
-                    this.map.setInfoWindowOnClick(true);
-                }
-
-                else {
-
-                    this._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+                    self.map.setInfoWindowOnClick(true);
+                } else {
+                    self._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
                         new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
                             new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
 
-                    //var graphic = new Graphic(evt.geometry, symbol);
-                    var graphic = new Graphic(evt.geometry, this._symPoly);
-                    this.map.graphics.add(graphic);
+                    var graphic = new Graphic(evt.geometry, self._symPoly);
+                    self.map.graphics.add(graphic);
 
-                    geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}'
-
+                    var geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}';
                     dom.byId('message').innerHTML = geojson0;
-                    showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+
+                    var popUpObj = window.open(flaskUrl + '/parcelgeom/' + geojson0,
+                        "ModalPopUp",
+                        "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
 
                     window.__mg_drawtoolbar.deactivate();
-                    this.map.setInfoWindowOnClick(true);
+                    self.map.setInfoWindowOnClick(true);
                 }
             },
 
             startup: function () {
-
                 this.inherited(arguments);
-
-                var map = this.map;
+                var self = this;
+                var map = self.map;
                 var srMap = map.extent.spatialReference;
-                // console.log('startup');
 
-
-                // coordinateFormatter spatial reference 
-                const geoSpatialReference = new SpatialReference({
+                var geoSpatialReference = new SpatialReference({
                     wkid: 4326
                 });
 
                 var redSpatialReference = new SpatialReference({
-                    wkid: 3395 //spatial reference of 500K rasters
+                    wkid: 3395
                 });
 
                 var message = document.getElementById("message");
@@ -599,9 +521,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
                         new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
 
-                this.drawtoolbar = new Draw(this.map)
-                this.drawtoolbar.on("draw-end", this.addToMap)
-
-            },
+                self.drawtoolbar = new Draw(self.map);
+                self.drawtoolbar.on("draw-end", lang.hitch(self, self.addToMap));
+            }
         });
     });

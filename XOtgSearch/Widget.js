@@ -20,7 +20,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
     "esri/symbols/SimpleFillSymbol",
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
-    // 'dojo/number',
     'dojo/i18n',
     'dojo/i18n!esri/nls/jsapi',
     'dojo/_base/html',
@@ -29,6 +28,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
     "dojo/on",
     "dojo/_base/array",
     "dojo/dom",
+    "dojo/request/xhr",
     "dojo/domReady!"
 ],
     function (declare, BaseWidget
@@ -47,16 +47,11 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
         dojoI18n, esriNlsBundle,
         html, lang,
 
-
-        on, array, dom
+        on, array, dom, xhr
     ) {
-        //To create a widget, you need to derive from BaseWidget.
         return declare([BaseWidget], {
-            // Custom widget code goes here
             baseClass: 'jimu-widget-xotgparcel',
-            _defaultGsUrl: 
-        		'//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer',
-            // TODO: own GeometryServer from config
+            _defaultGsUrl: '//tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer',
             _undoManager: null,
             _graphicsLayer: null,
             _objectIdCounter: 1,
@@ -65,112 +60,87 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             _polygonLayer: null,
             _labelLayer: null,
             drawtoolbar: null,
-            //_drawtoolbar: new Draw(this.map),
             _dt: null,
             _symPoly: null,
             urlParcelService: 'http://192.168.0.115:5020/parcelgeom/',
             _gs: 'http://192.168.0.115:6080/arcgis/rest/services/Geometry/GeometryServer',
-                //null, // own geometry service
             dtbox: '',
-
-
-            //this property is set by the framework when widget is loaded.
             name: 'XOtgParcel',
-            //methods to communication with app container:
 
-            
             postMixInProperties: function () {
                 this.inherited(arguments);
                 this.jimuNls = window.jimuNls;
-                //this.config.isOperationalLayer = !!this.config.isOperationalLayer;
-                //point locale decimal
-                //this.numberDecimal = dojoI18n.getLocalization("dojo.cldr", "number", window.dojoConfig.locale).decimal;
-                console.log(esriConfig.defaults.geometryService)
                 if (esriConfig.defaults.geometryService) {
                     this._gs = esriConfig.defaults.geometryService;
                 } else {
                     this._gs = new GeometryService(this._defaultGsUrl);
                 }
-    
             },
-            
+
             postCreate: function () {
                 this.inherited(arguments);
-                console.log('postCreate');
-                //this._initGraphicsLayers();
+                var self = this;
+                xhr('/flask_proxy/get_config.php', {
+                    handleAs: 'json'
+                }).then(function (cfg) {
+                    window.__mg_widgetConfig = cfg;
+                }, function (error) {
+                    console.error('Failed to load config:', error);
+                });
             },
 
-    
             _initGraphicsLayers: function () {
                 this._graphicsLayer = new GraphicsLayer();
-
-                // if (!this.config.isOperationalLayer) {
-                    //this._polygonLayer = new GraphicsLayer();
-                    //this.map.addLayer(this._polygonLayer);
-                    //this.map.addLayer(this._labelLayer);
-                // }
             },
 
             _removeEmptyLayers: function () {
-                //if (this._polygonLayer && this._polygonLayer.graphics.length === 0) {
-                //    this.map.removeLayer(this._polygonLayer);
-                //    this._polygonLayer = null;
-                //}
-                },
-             startDraw: function () {
+            },
+
+            startDraw: function () {
                 this.map.graphics.clear();
-             },
+            },
 
             _onBtnPolygonClick: function () {
                 this.map.graphics.clear();
-
-
-                //this.drawtoolbar = new Draw(this.map)
-                //this.drawtoolbar.on("draw-end", this._addToMap)
-                
                 window.__mg_drawtoolbar = this.drawtoolbar;
                 this.map.setInfoWindowOnClick(false);
-                this.drawtoolbar.activate('polygon');  //'polygon' Draw['POLYGON']
+                this.drawtoolbar.activate('polygon');
                 this.map.hideZoomSlider();
-                
-                //console.log('polygon');
             },
-
 
             _onBtnClearClick: function () {
                 this.map.graphics.clear();
                 dom.byId('message').innerHTML = "";
-                
             },
-            
-            _onBtnJsonClick: function() {
-                // console.log('_onBtnJsonClick');
+
+            _onBtnJsonClick: function () {
+                var self = this;
                 var template = document.getElementById('mg-lines-template');
                 var container = document.getElementById('mg-srch-results');
-                var __mg_map = this.map;
+                var __mg_map = self.map;
                 var __mg_search_res = [];
-                
-                var highlightResStr = function(elt) {
+                var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';
+
+                var highlightResStr = function (elt) {
                     var html_collect = document.getElementsByClassName('mg-search-block-selected');
                     var selected_blocks = [];
-                    for (i1=0; i1<html_collect.length; i1++) {
+                    for (var i1 = 0; i1 < html_collect.length; i1++) {
                         selected_blocks.push(html_collect[i1]);
                     }
-                    for (i1=0; i1<selected_blocks.length; i1++) {
+                    for (var i1 = 0; i1 < selected_blocks.length; i1++) {
                         selected_blocks[i1].classList.remove('mg-search-block-selected');
                     }
-                    
+
                     var html_collect = document.getElementsByClassName('mg-separator-selected');
                     var selected_separators = [];
-                    for (i1=0; i1<html_collect.length; i1++) {
+                    for (var i1 = 0; i1 < html_collect.length; i1++) {
                         selected_separators.push(html_collect[i1]);
                     }
-                    for (i1=0; i1<selected_separators.length; i1++) {
+                    for (var i1 = 0; i1 < selected_separators.length; i1++) {
                         selected_separators[i1].classList.remove('mg-separator-selected');
                     }
 
                     var block = elt.closest('.mg-search-block');
-                    // console.log(block);
                     block.classList.add('mg-search-block-selected');
 
                     var row = elt.closest('.mg-search-row');
@@ -179,62 +149,53 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
                     separator_1.classList.add('mg-separator-selected');
                     separator_2.classList.add('mg-separator-selected');
-                    // + набить стили
-                    // повесить на поиск и открытие 
-                };
-                
-                var showPopUp = function (url, parameters) {
-                    popUpObj = window.open(url,
-                        "ModalPopUp",
-                        "popup=yes," +
-                        "toolbar=no," +
-                        "scrollbars=no," +
-                        "location=no," +
-                        "statusbar=no," +
-                        "menubar=no," +
-                        "resizable=0," +
-                        "width=700," +
-                        "height=500," +
-                        "left = 490," +
-                        "top=100");
                 };
 
-
-                var onCoordsClick = function() {
-                    highlightResStr(this);                    
-                    
+                var onCoordsClick = function () {
+                    highlightResStr(this);
                     __mg_map.graphics.clear();
                     var srMap = __mg_map.extent.spatialReference;
                     var coord_idx = this.getAttribute('mg-coord-idx');
-                    
-                    var myPolygon = {'geometry':{'rings': __mg_search_res[coord_idx].coords,
-                        'spatialReference':srMap},
-                        'symbol':{'color':[0,0,0,64],'outline':{'color':[0,0,0,255],
-                        'width':1,'type':'esriSLS','style':'esriSLSSolid'},
-                        'type':'esriSFS','style':'esriSFSSolid'}};
-                      
-                    var gra = new Graphic(myPolygon);
 
+                    var myPolygon = {
+                        'geometry': {
+                            'rings': __mg_search_res[coord_idx].coords,
+                            'spatialReference': srMap
+                        },
+                        'symbol': {
+                            'color': [0, 0, 0, 64],
+                            'outline': {
+                                'color': [0, 0, 0, 255],
+                                'width': 1,
+                                'type': 'esriSLS',
+                                'style': 'esriSLSSolid'
+                            },
+                            'type': 'esriSFS',
+                            'style': 'esriSFSSolid'
+                        }
+                    };
+
+                    var gra = new Graphic(myPolygon);
                     __mg_map.graphics.add(gra);
                     try {
                         var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
                         __mg_map.setExtent(extent);
-                    } 
-                    catch(err) {
-                        console.log(err);
+                    } catch (err) {
+                        // ignore
                     }
-                    
                 };
 
-                var onRunProtClick =  function() {
+                var onRunProtClick = function () {
                     highlightResStr(this);
-                    
                     var coord_idx = this.getAttribute('mg-coord-idx');
-                    geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
-                    showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
+                    var geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
+
+                    var popUpObj = window.open(flaskUrl + '/parcelgeom/' + geojson0,
+                        "ModalPopUp",
+                        "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
                 };
-                
-                var onResNameClick = function() {
+
+                var onResNameClick = function () {
                     highlightResStr(this);
                 };
 
@@ -244,187 +205,99 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     alert('Порожній запит!');
                     return;
                 }
-                
-                var xhr = new XMLHttpRequest();
-				xhr.open('GET', 'https://gisserver.gapu.local/flask_proxy/index.php?req_addr='+req_addr+'&req_custmr='+req_custmr);
-                xhr.send();
 
-                xhr.onload = function() {
+                var xhrReq = new XMLHttpRequest();
+                xhrReq.open('GET', '/flask_proxy/index.php?req_addr=' + req_addr + '&req_custmr=' + req_custmr);
+                xhrReq.send();
+
+                xhrReq.onload = function () {
                     try {
-                        var res = JSON.parse(xhr.response);
-                    }
-                    catch(err) {
-						container.innerHTML = '';
-                        console.log('JSON parse error');
-                        console.log(err);
+                        var res = JSON.parse(xhrReq.response);
+                    } catch (err) {
+                        container.innerHTML = '';
                         return;
                     }
 
-                    for (i1=0; i1<res.length; i1++) {
+                    for (var i1 = 0; i1 < res.length; i1++) {
                         try {
-                            coords = JSON.parse(res[i1][0]);
-                        }
-                        catch(err) {
+                            var coords = JSON.parse(res[i1].geojson);
+                        } catch (err) {
                             continue;
                         }
-                        sr_res = {
-                            'txt' : res[i1][2]+', '+res[i1][1],
-                            'coords' : coords.coordinates[0]
+                        var sr_res = {
+                            'txt': res[i1].str + ', ' + res[i1].zak,
+                            'coords': coords.coordinates[0]
                         };
                         __mg_search_res.push(sr_res);
                     }
-                    
+
                     container.innerHTML = '';
                     var tmpl_block = template.querySelector('span');
-                    for (i1=0; i1<__mg_search_res.length; i1++) {
-                        clone = tmpl_block.cloneNode(true);
-                        res_name = clone.querySelector('.mg-search-txt');
+                    for (var i1 = 0; i1 < __mg_search_res.length; i1++) {
+                        var clone = tmpl_block.cloneNode(true);
+                        var res_name = clone.querySelector('.mg-search-txt');
                         res_name.innerText = __mg_search_res[i1].txt;
                         res_name.addEventListener('click', onResNameClick);
-                        res_coords = clone.querySelector('.mg-search-coords');
+                        var res_coords = clone.querySelector('.mg-search-coords');
                         res_coords.setAttribute('mg-coord-idx', i1.toString());
                         res_coords.addEventListener('click', onCoordsClick);
-                        res_run_prot = clone.querySelector('.mg-run-prot');
+                        var res_run_prot = clone.querySelector('.mg-run-prot');
                         res_run_prot.setAttribute('mg-coord-idx', i1.toString());
                         res_run_prot.addEventListener('click', onRunProtClick);
                         container.appendChild(clone);
-                    };
-                    // console.log(__mg_search_res);
+                    }
                 };
 
-                xhr.onerror = function() {};                
+                xhrReq.onerror = function () { };
             },
 
             addToMap: function (evt) {
+                var self = this;
+                var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';
 
-                function showPopUp(url, parameters) {
-                    popUpObj = window.open(url,
-                        "ModalPopUp",
-                        "popup=yes," +
-                        "toolbar=no," +
-                        "scrollbars=no," +
-                        "location=no," +
-                        "statusbar=no," +
-                        "menubar=no," +
-                        "resizable=0," +
-                        "width=700," +
-                        "height=500," +
-                        "left = 490," +
-                        "top=100");
+                self.map.showZoomSlider();
 
-                    // popUpObj.focus();
-
-                }
-
-                var symbol;
-                this.map.showZoomSlider();
-
-                //this.drawtoolbar.deactivate(); //  null ? 
-
-                symbol = new SimpleFillSymbol();
-
-                this._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+                self._symPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
                     new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
                         new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
 
-                //var graphic = new Graphic(evt.geometry, symbol);
-                var graphic = new Graphic(evt.geometry, this._symPoly);
-                this.map.graphics.add(graphic);
+                var graphic = new Graphic(evt.geometry, self._symPoly);
+                self.map.graphics.add(graphic);
 
-                geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}'
+                var geojson0 = '{"type": "POLYGON", "coordinates":' + JSON.stringify(graphic.geometry.rings) + '}';
 
-                console.log(geojson0)
-                // select st_geomfromgeojson(geojson) 
                 dom.byId('message').innerHTML = geojson0;
-                showPopUp('http://192.168.17.45:5024/parcelgeom/' + geojson0);
-                
+
+                var popUpObj = window.open(flaskUrl + '/parcelgeom/' + geojson0,
+                    "ModalPopUp",
+                    "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
+
                 window.__mg_drawtoolbar.deactivate();
-                this.map.setInfoWindowOnClick(true);
+                self.map.setInfoWindowOnClick(true);
             },
-            
-          startup: function () {
-            this.inherited(arguments);
-            //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
-            var map = this.map;
-            var srMap = map.extent.spatialReference;
-            //console.log(map.extent.spatialReference);
-            console.log('startup');
 
+            startup: function () {
+                this.inherited(arguments);
+                var self = this;
+                var map = self.map;
+                var srMap = map.extent.spatialReference;
 
-            // coordinateFormatter spatial reference 
-            const geoSpatialReference = new SpatialReference({
-              wkid: 4326
-            });
+                var geoSpatialReference = new SpatialReference({
+                    wkid: 4326
+                });
 
-            var redSpatialReference = new SpatialReference({
-              wkid: 3395 //spatial reference of 500K rasters
-            });
+                var redSpatialReference = new SpatialReference({
+                    wkid: 3395
+                });
 
-            var message = document.getElementById("message");
+                var message = document.getElementById("message");
 
-            var sfsPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
-              new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
-                new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
+                var sfsPoly = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+                    new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+                        new Color([255, 0, 0]), 3), new Color([255, 255, 0, 0.1]));
 
-            this.drawtoolbar = new Draw(this.map)
-            this.drawtoolbar.on("draw-end", this.addToMap)
-            //this.drawtoolbar.on("draw-start", this.startDraw)
-
-          },
-          
-
-      // onOpen: function(){
-      //   console.log('onOpen');
-      // },
-
-      // onClose: function(){
-      //   console.log('onClose');
-      // },
-
-      // onMinimize: function(){
-      //   console.log('onMinimize');
-      // },
-
-      // onMaximize: function(){
-      //   console.log('onMaximize');
-      // },
-
-      // onSignIn: function(credential){
-      //   /* jshint unused:false*/
-      //   console.log('onSignIn');
-      // },
-
-      // onSignOut: function(){
-      //   console.log('onSignOut');
-      // }
-
-      // onPositionChange: function(){
-      //   console.log('onPositionChange');
-      // },
-
-      // resize: function(){
-      //   console.log('resize');
-      // }
-
-
-      //methods to communication between widgets:
-
+                self.drawtoolbar = new Draw(self.map);
+                self.drawtoolbar.on("draw-end", lang.hitch(self, self.addToMap));
+            }
+        });
     });
-  });
-  
-function Test1() {
-// MULTIPOLYGON (((54576.41033215127 26277.420703490327, 54726.41576310941 26392.208502629877, 54748.590485549306 26367.425399023454, 54598.58503744799 26250.028834574798, 54576.41033215127 26277.420703490327)))
-// MULTIPOLYGON (((59404.12498263973 25899.081432196876, 59420.45338754865 25922.089673769176, 59570.3777313209 25795.175996649134, 59565.18233988903 25787.011777114014, 59634.94912034327 25729.8635502933, 59623.07392768244 25714.277307381806, 59404.12498263973 25899.081432196876)))
-// MULTIPOLYGON (((60053.71653752333 26687.390254720896, 60071.93298812618 26690.33722786684, 60082.112790018065 26632.74151332398, 60065.23576943826 26630.0624445808, 60053.71653752333 26687.390254720896)))
-// MULTIPOLYGON (((60230.79128832283 26709.359083067666, 60397.75323273204 26737.02037639341, 60409.406404220645 26689.33653157908, 60238.49311381437 26662.81369911889, 60230.79128832283 26709.359083067666)))
-
-    str1 = 'MULTIPOLYGON (((60230.79128832283 26709.359083067666, 60397.75323273204 26737.02037639341, 60409.406404220645 26689.33653157908, 60238.49311381437 26662.81369911889, 60230.79128832283 26709.359083067666)))';
-    str1 =  str1.replace('MULTIPOLYGON (((', '');
-    str1 =  str1.replace(')))', '');
-
-    str1 =  str1.split(', ');
-    for (var i1=0; i1 < str1.length; i1++) {
-        console.log(str1[i1].replace(' ', ','));
-    }
-}   
- 

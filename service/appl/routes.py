@@ -1,54 +1,91 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
-import os,sys
+import datetime
+import decimal
+import json
+import os
+import sys
+
+# stdlib
+
 rootpath = os.path.dirname(__file__)
 sys.path.append(rootpath)  #add to path local
-#
-from flask import render_template, flash, redirect, url_for, send_from_directory, make_response
+
+# third-party
+from flask import jsonify, render_template, request
+import psycopg
+from psycopg.rows import dict_row
+
+# local imports
 from appl import app
-from appl.forms import LoginForm
-from appl.forms import RegistrationForm
+from config import Config
 
-from appl import db
+connstring = Config.connstring
 
-from flask_login import current_user, login_user
-from appl.models import Users
-from flask_login import logout_user
-from flask_login import login_required
-from flask import request
-from flask import jsonify
-from werkzeug.urls import url_parse
 
-#from flask import url_for, request, Response, render_template, abort, redirect, send_from_directory, flash
-
-#from flask_restful import Resource, Api
-
-import datetime
-
-import urllib3
-http = urllib3.PoolManager()
-
-import psycopg2
-from psycopg2.extras import Json
-from psycopg2.extensions import register_adapter
-register_adapter(dict, Json)
-
-import json, decimal
 def default(self, obj):
     if isinstance(obj, decimal.Decimal): return float(obj)
 
-import serversidetable as st
-from config import Config
-connstring = Config.connstring
-#Config.SQLALCHEMY_DATABASE_URI
-#Config.connstring
 
 @app.route('/')
 @app.route('/index')
-#@login_required
 def index():
-    #user = {'username': 'miguel'}
-    return render_template("index.html", title='Home Page')
+    return "XOtgService"
+    # return render_template("index.html", title='Home Page')
+
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204  # No Content - браузер не будет повторно запрашивать
+
+@app.route('/testdb')
+def testdb():
+
+    con = psycopg.connect(connstring, row_factory=dict_row)
+    cur = con.cursor()
+
+    layers = [
+        "червоні_лінії_діпроміста",
+        "інші_розроблені_червоні_лінії",
+        "зонінг",
+        "Історичний ареал",
+        "зони охорони памяток архітектури",
+        "зони регулювання забудови в межах історичних ареалів_1",
+        "Зони обєктів природно_заповідного фонду",
+        "Прибережні_захисні смуги",
+        "Водоохоронні зони",
+        "Межі лісового господарства",
+        "с_з_розрахункові",
+        "Межі санітарно_захисних зон промислових",
+        "Зони що не підлягають забудові",
+        "зелене_господарство",
+        "муо",
+        "бп",
+        "паспорт_прив_тимч_споруд",
+        "містобудівна_рада",
+        "висновки",
+        "dozvol_zayava_region",
+        "Проекти_інженерних_мереж",
+        "xml"
+    ]
+
+    result = {}
+
+    for layer in layers:
+
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT 1
+                FROM pg_tables
+                WHERE schemaname = 'public'
+                  AND tablename = %s
+            );
+        """, (layer,))
+
+        result[layer] = cur.fetchone()["exists"]
+
+    con.close()
+
+    return result
+
 
 @app.route('/rlupload/<parcel_geom>', methods=['GET'])
 def red_lines_upload(parcel_geom=None, con=None):
@@ -61,8 +98,8 @@ def red_lines_upload(parcel_geom=None, con=None):
     environ = request.environ
     method = request.method
 
-    con = psycopg2.connect(connstring)
-    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    con = psycopg.connect(connstring, row_factory=dict_row)
+    cur = con.cursor()
 
     parceldata = {}
 
@@ -76,21 +113,18 @@ def red_lines_upload(parcel_geom=None, con=None):
             )
         )
     ) AS geojson
-    FROM arcgis.public."червоні_лінії_діпроміста" n
+    FROM public."червоні_лінії_діпроміста" n
     WHERE ST_Intersects(
         n.geom,
-        ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry, 0)
+        ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry, 0)
     );
-    '''.format(geom=parcel_geom)
+    '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rl = cur.fetchone()[0]
     
     parceldata["rl"] = rl
     
-    # убрали из запроса
-    # 'properties', to_jsonb(n) - 'geom'
-
     sql = '''
     SELECT json_build_object(
         'type',       'FeatureCollection',
@@ -101,14 +135,14 @@ def red_lines_upload(parcel_geom=None, con=None):
             )
         )
     ) AS geojson
-    FROM arcgis.public."інші_розроблені_червоні_лінії" n
+    FROM public."інші_розроблені_червоні_лінії" n
     WHERE ST_Intersects(
         n.geom,
-        ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry, 0)
+        ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry, 0)
     );
-    '''.format(geom=parcel_geom)
+    '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rlo = cur.fetchone()[0]
     
     parceldata["rlo"] = rlo
@@ -116,200 +150,8 @@ def red_lines_upload(parcel_geom=None, con=None):
     return render_template('rl_upload.html', parceldata=parceldata)
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = Users.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
-        login_user(user, remember=form.remember_me.data)
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
-        return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form)
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = Users(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        user.status = 0
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
-
-
-
-def getLayersByGroup(groupname=None):
-    data = {}
-    if not groupname:
-        datasetid = -1
-        return data
-
-    con = None
-    try:
-        con = psycopg2.connect(connstring)
-        #cur = con.cursor()
-        cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        #sql = "SELECT keyvalue FROM {}	where keyname = '{}'".format(tablename, key )
-        sql = '''select 
-                id,
-                dsname,
-                datasetid,
-                typelayer,
-                layeroptions,
-                extent,
-                dsdata 
-                from register.v_datasets_group
-                where 1=1
-        '''
-        #              ' % (groupname)
-        if groupname is not None:
-            sql = "%s and groupdataset = '%s' " % (sql, groupname)
-        cur.execute(sql)
-        select = cur.fetchall()
-        if len(select) > 0:
-            cols = list(map(lambda x: x[0], cur.description)) #
-            #select.insert(0, tuple(cols))  # insert elements by list.insert(index, new_item) method если нужно вставить заголовки в начало списка
-            dcols = {}
-            '''
-            for i in range(len(cols)):
-                #dcols[cols[i]] = i
-                #data[cols[i]] = select[0][i]
-                data[cols[i]] = select[i]
-            '''
-
-        rows = {}
-        rows['layers'] = []
-        # select.insert(0, tuple(cols))  # insert elements by list.insert(index, new_item) method если нужно вставить заголовки в начало списка
-        # dcols = {}
-        for row in select:
-            datarow = {}
-            for i in range(len(cols)):
-                #dcols[cols[i]] = i
-                #data[cols[i]] = select[0][i]
-                datarow[cols[i]] = row[i]
-            '''    
-            for i in range(len(cols)):
-                if cols[i] == 'geom':
-                    pass
-                else:
-                    datarow.append(row[i])
-            '''
-            rows['layers'].append(datarow)
-        #data['data'] = rows
-        data = rows
-    except Exception as e:
-        pass
-        #print(e)
-    finally:
-        if con:
-            con.close()
-
-    #	datasetid = 'test14_1613330564803'
-    return data
-
-
-def __get_kcp_code():
-    pass
-    sql = '''
-    select 
-    	kod,
-    	"group", prizn,
-    	kod ||' '|| "group" ||' '||  	prizn as  kod_prizn,
-    	koeff
-    from layers.kcp 
-    
-    '''.format(cadnum='')
-    # print(sql)
-    try:
-        con = psycopg2.connect(connstring)
-        cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        # cur = con.cursor()
-        cur.execute(sql)
-        select = cur.fetchone()
-        data = {}
-        if select:
-            # print(select)
-            cols = list(map(lambda x: x[0], cur.description)) #
-            for key in cols:
-                data[key] = select.get(key)
-        # con.commit()
-    except Exception as e:
-        status = 500
-    finally:
-        if con:
-            con.close()
-
-
-@app.route('/parcel/<parcel_id>', methods=['GET'])
-def __parcel(parcel_id=None, con=None):
-    result = {}
-    if not parcel_id:
-        parcel_id = ""
-        return "", 200 # 500
-
-    environ = request.environ
-    method = request.method
-    sql = '''
-    select 
-        *, public.st_asgeojson(public.st_transform(geom,4326)) as geomjson
-    from layers.v_diljanky where cadnum = '{cadnum}'
-    '''.format(cadnum=parcel_id)
-    # print(sql)
-    result['status'] = False
-    try:
-        con = psycopg2.connect(connstring)
-        cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        # cur = con.cursor()
-        cur.execute(sql)
-        select = cur.fetchone()
-        data = {}
-        if select:
-            # print(select)
-            cols = list(map(lambda x: x[0], cur.description)) #
-            #select.insert(0, tuple(cols))  # insert elements by list.insert(index, new_item) method если нужно вставить заголовки в начало списка
-            for key in cols:
-                data[key] = select.get(key)
-
-
-        # con.commit()
-        result['status'] = True
-    except Exception as e:
-        result["error"] = str(e.args[0])
-        result['status'] = False
-        status = 500
-    finally:
-        if con:
-            con.close()
-    parceldata = {}
-    parceldata['wmsurl'] = Config.GEOSERVER + '/wms'
-    parceldata['select']  = select
-    parceldata['data'] = data
-    # return render_template('parcel_edit.html')
-    return render_template('parcel_edit.html', parceldata=parceldata)
-
-
 @app.route('/parcelgeom/<parcel_geom>', methods=['GET','POST'])
 def __parcelgeom(parcel_geom=None, con=None):
-    # print('parcelgeom')
-    # return 'parcelgeom'
-
     result = {}
     if not parcel_geom:
         parcel_id = ""
@@ -318,28 +160,28 @@ def __parcelgeom(parcel_geom=None, con=None):
     environ = request.environ
     method = request.method
 
-    con = psycopg2.connect(connstring)
-    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    con = psycopg.connect(connstring, row_factory=dict_row)
+    cur = con.cursor()
 
     parceldata = {}
 
     sql = '''
-    SELECT id, ST_Area(ST_GeomFromGeoJSON('{geom}'):: geometry)
-    FROM arcgis.public."червоні_лінії_діпроміста" n
+    SELECT id, ST_Area(ST_GeomFromGeoJSON(%s):: geometry) as area
+    FROM public."червоні_лінії_діпроміста" n
     LIMIT 1
-        '''.format(geom=parcel_geom)
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
-    parceldata['area'] = select[1]
+    parceldata['area'] = select['area']
 
     sql = '''
     SELECT *
-    FROM arcgis.public."червоні_лінії_діпроміста" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."червоні_лінії_діпроміста" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     rl = []
@@ -348,11 +190,11 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."інші_розроблені_червоні_лінії" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."інші_розроблені_червоні_лінії" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     rlo = []
@@ -361,11 +203,11 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."зонінг" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зонінг" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     zng = []
@@ -374,11 +216,11 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."Історичний ареал" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Історичний ареал" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     hist = [False, False, False, False]
@@ -387,11 +229,11 @@ def __parcelgeom(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."зони охорони памяток архітектури" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зони охорони памяток архітектури" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -399,11 +241,11 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."зони регулювання забудови в межах історичних ареалів_1" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зони регулювання забудови в межах історичних ареалів_1" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -411,11 +253,11 @@ def __parcelgeom(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Зони обєктів природно_заповідного фонду" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Зони обєктів природно_заповідного фонду" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -423,40 +265,40 @@ def __parcelgeom(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Прибережні_захисні смуги" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Прибережні_захисні смуги" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     pzsvs = []
     pzsvs_type = [False, False]
     for row in rows:
-        pzsvs.append('Прибережні захисні смуги, ріш. №|'+str(row[3])+' від '+row[4].strftime('%d.%m.%Y'))
+        pzsvs.append('Прибережні захисні смуги, ріш. №|' + str(row.get('n_reshen', '')) + ' від ' + row.get('date_reshe', datetime.date.today()).strftime('%d.%m.%Y'))
         if not pzsvs_type[0]:
             pzsvs_type[0] = True
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Водоохоронні зони" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Водоохоронні зони" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
     for row in rows:
-        pzsvs.append('Водоохоронні зони, ріш. №|'+str(row[3])+' від '+row[4].strftime('%d.%m.%Y'))
+        pzsvs.append('Водоохоронні зони, ріш. №|' + str(row.get('nom_reshen', '')) + ' від ' + row.get('data_reshe', datetime.date.today()).strftime('%d.%m.%Y'))
         if not pzsvs_type[1]:
             pzsvs_type[1] = True
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Межі санітарно_захисних зон промислових" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Межі санітарно_захисних зон промислових" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     prot1 = False
@@ -465,23 +307,23 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."с_з_розрахункові" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."с_з_розрахункові" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
     prot2 = []
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
     for row in rows:
-        prot2.append(str(row[4])+'|'+str(row[36])+' від '+row[35].strftime('%d.%m.%Y'))
+        prot2.append(str(row.get('kadnom', '')) + '|' + str(row.get('datasgo', '')) + ' від ' + row.get('dataprod', datetime.date.today()).strftime('%d.%m.%Y'))
 
     sql = '''
     SELECT *
-    FROM arcgis.public."Межі лісового господарства" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Межі лісового господарства" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     brd = [False, False, False]
@@ -490,11 +332,11 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."Зони що не підлягають забудові" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Зони що не підлягають забудові" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -502,11 +344,11 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."зелене_господарство" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зелене_господарство" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -516,66 +358,66 @@ def __parcelgeom(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."муо" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."муо" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[0] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."бп" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."бп" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[1] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."паспорт_прив_тимч_споруд" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."паспорт_прив_тимч_споруд" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[2] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."містобудівна_рада" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."містобудівна_рада" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[3] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."висновки" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."висновки" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[4] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."dozvol_zayava_region" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."dozvol_zayava_region" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[5] = True
@@ -584,90 +426,34 @@ def __parcelgeom(parcel_geom=None, con=None):
     zng_lst = []
     zng_grp = []
     zng_docs = [
-        'В-2',
-        'В-3',
-        'В-4',
-        'В-5',
-        'В-6',
-        'Г-1',
-        'Г-2',
-        'Г-3-1',
-        'Г-3-2',
-        'Г-3-3',
-        'Г-4-1',
-        'Г-4-2',
-        'Г-4-4',
-        'Г-5-1',
-        'Г-5-2',
-        'Г-6',
-        'Г-ТР -1-2',
-        'Ж-1',
-        'Ж-7',
-        'ІК',
-        'ІН-1',
-        'ІН-2',
-        'ІН-3',
-        'КВТ',
-        'КЛ-2',
-        'КС-2',
-        'КС-3',
-        'КС-3-1',
-        'КС-4',
-        'КС-4-1',
-        'КС-5',
-        'КС-5-1',
-        'КС-6',
-        'П-В-5',
-        'П-В-6',
-        'П-Г-2',
-        'П-Г-3-1',
-        'П-Г-6',
-        'П-Ж-1',
-        'П-Ж-7',
-        'П-ІН-1',
-        'П-КС-3-1',
-        'П-КС-4',
-        'П-КС-5',
-        'П-КС-6',
-        'П-Р-2',
-        'П-Р-3',
-        'П-Р-3-2',
-        'П-ТР-2-1',
-        'Р-1',
-        'Р-2',
-        'Р-3',
-        'Р-3-2',
-        'Р-3-4',
-        'Р-4',
-        'С-2',
-        'С-3',
-        'С-4'
+        'В-2', 'В-3', 'В-4', 'В-5', 'В-6', 'Г-1', 'Г-2', 'Г-3-1', 'Г-3-2', 'Г-3-3',
+        'Г-4-1', 'Г-4-2', 'Г-4-4', 'Г-5-1', 'Г-5-2', 'Г-6', 'Г-ТР -1-2', 'Ж-1', 'Ж-7',
+        'ІК', 'ІН-1', 'ІН-2', 'ІН-3', 'КВТ', 'КЛ-2', 'КС-2', 'КС-3', 'КС-3-1', 'КС-4',
+        'КС-4-1', 'КС-5', 'КС-5-1', 'КС-6', 'П-В-5', 'П-В-6', 'П-Г-2', 'П-Г-3-1', 'П-Г-6',
+        'П-Ж-1', 'П-Ж-7', 'П-ІН-1', 'П-КС-3-1', 'П-КС-4', 'П-КС-5', 'П-КС-6', 'П-Р-2',
+        'П-Р-3', 'П-Р-3-2', 'П-ТР-2-1', 'Р-1', 'Р-2', 'Р-3', 'Р-3-2', 'Р-3-4', 'Р-4',
+        'С-2', 'С-3', 'С-4'
     ]
 
     for zng_r in zng:
-        if len(zng_r[10].strip()) > 0:
-            zng_str = zng_r[9]+'|'+zng_r[10]
+        if len(zng_r.get('ZONONG1', '').strip()) > 0:
+            zng_str = zng_r.get('ZONING', '') + '|' + zng_r.get('ZONONG1', '')
             zng_lst.append(zng_str)
     
-    # group
     zng_lst = list(set(zng_lst))
-    # sort
     zng_lst.sort()
-    # grp and sorted to array
     for zng_str in zng_lst:
         zng_grp.append(zng_str.split('|'))
-    # text for printform
     zng_text = ''
     for zng_str in zng_grp:
-        zng_text += zng_str[1]+'; '
-    # docx links
+        zng_text += zng_str[1] + '; '
     for idx, zng_str in enumerate(zng_grp):
         if zng_str[0] in zng_docs:
             zng_grp[idx].append(zng_str[0])
         else:
             zng_grp[idx].append('nolnk')
 
-        zng_grp[idx].append(zng_str[0]+' '+zng_str[1])
+        zng_grp[idx].append(zng_str[0] + ' ' + zng_str[1])
 
     rl_str = []
     rl_grp = []
@@ -679,12 +465,12 @@ def __parcelgeom(parcel_geom=None, con=None):
             rl_type = 3
         
     for rlor in rlo:
-        if len(rlor[5].strip()) > 0:
-            rl_str.append('1|Рішення міської ради №|'+rlor[5]+' від '+rlor[3].strftime('%d.%m.%Y'))
+        if len(rlor.get('NOM_RESH', '').strip()) > 0:
+            rl_str.append('1|Рішення міської ради №|' + rlor.get('NOM_RESH', '') + ' від ' + rlor.get('DATE_RESH', datetime.datetime.now()).strftime('%d.%m.%Y'))
             if rl_type > 1:
                 rl_type = 1
-        elif len(rlor[8].strip()) > 0:
-            rl_str.append('2|Протокол містобудівної ради №|'+rlor[8].replace('от', 'від'))
+        elif len(rlor.get('PRIMECH', '').strip()) > 0:
+            rl_str.append('2|Протокол містобудівної ради №|' + rlor.get('PRIMECH', '').replace('от', 'від'))
             if rl_type > 2:
                 rl_type = 2
 
@@ -708,25 +494,22 @@ def __parcelgeom(parcel_geom=None, con=None):
     hist_text2 = ' - '
     hist_text21 = ''
     if hist[1] and hist[2]:
-        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини та в охоронній зоні об’єкта культурної спадщини'
-        hist_text21 = 'Зони охорони пам’яток архітектури та регулювання забудови пам’яток'
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об\'єкта культурної спадщини та в охоронній зоні об\'єкта культурної спадщини'
+        hist_text21 = 'Зони охорони пам\'яток архітектури та регулювання забудови пам\'яток'
     elif hist[1]:
-        hist_text2 = 'Ділянка знаходиться в охоронній зоні об’єкта культурної спадщини'
-        hist_text21 = 'Зони охорони пам’яток архітектури'
+        hist_text2 = 'Ділянка знаходиться в охоронній зоні об\'єкта культурної спадщини'
+        hist_text21 = 'Зони охорони пам\'яток архітектури'
     elif hist[2]:
-        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини'
-        hist_text21 = 'Зони регулювання забудови пам’яток'
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об\'єкта культурної спадщини'
+        hist_text21 = 'Зони регулювання забудови пам\'яток'
         
     hist_text3 = ' - '
     if hist[3]:
-        hist_text3 = 'Ділянка знаходиться в зоні об’єктів природно-заповідного фонду'
+        hist_text3 = 'Ділянка знаходиться в зоні об\'єктів природно-заповідного фонду'
         
     pzsvs_grp = []
-    # group
     pzsvs = list(set(pzsvs))
-    # sort
     pzsvs.sort()
-    # grp and sorted to array
     for pzsvs_str in pzsvs:
         pzsvs_grp.append(pzsvs_str.split('|'))
     
@@ -746,7 +529,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     if prot1 and len(prot2) > 0:
         prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах санітарно-захисної смуги та в межах розрахункової відстані: <br>'
     elif prot1:
-        prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах санітарно-захисної смуги'
+        prot_text = 'Відповідно до плану зонування территории ділянка знаходиться в межах санітарно-захисної смуги'
     elif len(prot2) > 0:
         prot_text = 'Відповідно до плану зонування території ділянка знаходиться в межах розрахункової відстані: <br>'
         
@@ -760,11 +543,11 @@ def __parcelgeom(parcel_geom=None, con=None):
     
     brd_text3 = ' - '
     if brd[2]:
-        brd_text3 = 'Ділянка знаходиться в межах об’єкта зеленого господарства'
+        brd_text3 = 'Ділянка знаходиться в межах об\'єкта зеленого господарства'
         
     otdocs_text1 = ' - '
     if other_docs[0]:
-        otdocs_text1 = 'Ділянка знаходиться в межах території на яку були надані містобудівні умови та обмеження'
+        otdocs_text1 = 'Ділянка знаходиться в межах території на яку были надані містобудівні умови та обмеження'
     
     otdocs_text2 = ' - '
     if other_docs[1]:
@@ -776,7 +559,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     
     otdocs_text4 = ' - '
     if other_docs[3]:
-        otdocs_text4 = 'Ділянка знаходиться в межах території на якій розглядалась можливість розташування об’єкта згідно протоколу містобудівної ради'
+        otdocs_text4 = 'Ділянка знаходиться в межах территории на якій розглядалась можливість розташування об\'єкта згідно протоколу містобудівної ради'
     
     otdocs_text5 = ' - '
     if other_docs[4]:
@@ -784,7 +567,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     
     otdocs_text6 = ' - '
     if other_docs[5]:
-        otdocs_text6 = 'На території ділянки були надані дозволи'
+        otdocs_text6 = 'На території ділянки были надані дозволи'
     
     parceldata['zoning'] = zng_grp
     parceldata['zng_text'] = zng_text
@@ -814,6 +597,7 @@ def __parcelgeom(parcel_geom=None, con=None):
     
     return render_template('parcel_geom.html', parceldata=parceldata)
 
+
 @app.route('/parcelgeoml/<parcel_geom>', methods=['GET','POST'])
 def __parcelgeoml(parcel_geom=None, con=None):
 
@@ -825,30 +609,30 @@ def __parcelgeoml(parcel_geom=None, con=None):
     environ = request.environ
     method = request.method
 
-    con = psycopg2.connect(connstring)
-    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    con = psycopg.connect(connstring, row_factory=dict_row)
+    cur = con.cursor()
 
     parceldata = {}
 
     sql = '''
-    SELECT id, ST_Area(ST_GeomFromGeoJSON('{geom}'):: geometry)
-    FROM arcgis.public."червоні_лінії_діпроміста" n
+    SELECT id, ST_Area(ST_GeomFromGeoJSON(%s):: geometry) as area
+    FROM public."червоні_лінії_діпроміста" n
     LIMIT 1
-        '''.format(geom=parcel_geom)
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
-    parceldata['area'] = select[1]
+    parceldata['area'] = select['area']
 
     sql = '''
     SELECT
         *,
         ST_AsGeoJSON(geom) as geojson
-    FROM arcgis.public."червоні_лінії_діпроміста" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."червоні_лінії_діпроміста" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     rl = []
@@ -859,11 +643,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
     SELECT
         *,
         ST_AsGeoJSON(geom) as geojson
-    FROM arcgis.public."інші_розроблені_червоні_лінії" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."інші_розроблені_червоні_лінії" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     rlo = []
@@ -874,11 +658,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
     SELECT 
         *,
         ST_AsGeoJSON(geom) as geojson
-    FROM arcgis.public."зонінг" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зонінг" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     zng = []
@@ -887,11 +671,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."Історичний ареал" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Історичний ареал" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     hist = [False, False, False, False]
@@ -900,11 +684,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."зони охорони памяток архітектури" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зони охорони памяток архітектури" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -912,11 +696,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."зони регулювання забудови в межах історичних ареалів_1" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зони регулювання забудови в межах історичних ареалів_1" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -924,11 +708,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Зони обєктів природно_заповідного фонду" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Зони обєктів природно_заповідного фонду" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -936,40 +720,40 @@ def __parcelgeoml(parcel_geom=None, con=None):
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Прибережні_захисні смуги" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Прибережні_захисні смуги" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
 
     pzsvs = []
     pzsvs_type = [False, False]
     for row in rows:
-        pzsvs.append('Прибережні захисні смуги, ріш. №|'+str(row[3])+' від '+row[4].strftime('%d.%m.%Y'))
+        pzsvs.append('Прибережні захисні смуги, ріш. №|' + str(row.get('n_reshen', '')) + ' від ' + row.get('date_reshe', datetime.date.today()).strftime('%d.%m.%Y'))
         if not pzsvs_type[0]:
             pzsvs_type[0] = True
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Водоохоронні зони" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Водоохоронні зони" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
     for row in rows:
-        pzsvs.append('Водоохоронні зони, ріш. №|'+str(row[3])+' від '+row[4].strftime('%d.%m.%Y'))
+        pzsvs.append('Водоохоронні зони, ріш. №|' + str(row.get('nom_reshen', '')) + ' від ' + row.get('data_reshe', datetime.date.today()).strftime('%d.%m.%Y'))
         if not pzsvs_type[1]:
             pzsvs_type[1] = True
         
     sql = '''
     SELECT *
-    FROM arcgis.public."Межі санітарно_захисних зон промислових" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Межі санітарно_захисних зон промислових" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     prot1 = False
@@ -978,23 +762,23 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."с_з_розрахункові" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."с_з_розрахункові" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
 
     prot2 = []
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
     for row in rows:
-        prot2.append(str(row[4])+'|'+str(row[36])+' від '+row[35].strftime('%d.%m.%Y'))
+        prot2.append(str(row.get('kadnom', '')) + '|' + str(row.get('datasgo', '')) + ' від ' + row.get('dataprod', datetime.date.today()).strftime('%d.%m.%Y'))
 
     sql = '''
     SELECT *
-    FROM arcgis.public."Межі лісового господарства" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Межі лісового господарства" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     brd = [False, False, False]
@@ -1003,11 +787,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."Зони що не підлягають забудові" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."Зони що не підлягають забудові" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -1015,11 +799,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."зелене_господарство" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."зелене_господарство" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
 
     if select:
@@ -1029,66 +813,66 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     sql = '''
     SELECT *
-    FROM arcgis.public."муо" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."муо" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[0] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."бп" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."бп" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[1] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."паспорт_прив_тимч_споруд" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."паспорт_прив_тимч_споруд" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[2] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."містобудівна_рада" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."містобудівна_рада" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[3] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."висновки" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."висновки" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[4] = True
 
     sql = '''
     SELECT *
-    FROM arcgis.public."dozvol_zayava_region" n
-    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON('{geom}')::geometry,0))
-        '''.format(geom=parcel_geom)
+    FROM public."dozvol_zayava_region" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
     select = cur.fetchone()
     if select:
         other_docs[5] = True
@@ -1097,120 +881,60 @@ def __parcelgeoml(parcel_geom=None, con=None):
     zng_lst = []
     zng_grp = []
     zng_docs = [
-        'В-2',
-        'В-3',
-        'В-4',
-        'В-5',
-        'В-6',
-        'Г-1',
-        'Г-2',
-        'Г-3-1',
-        'Г-3-2',
-        'Г-3-3',
-        'Г-4-1',
-        'Г-4-2',
-        'Г-4-4',
-        'Г-5-1',
-        'Г-5-2',
-        'Г-6',
-        'Г-ТР -1-2',
-        'Ж-1',
-        'Ж-7',
-        'ІК',
-        'ІН-1',
-        'ІН-2',
-        'ІН-3',
-        'КВТ',
-        'КЛ-2',
-        'КС-2',
-        'КС-3',
-        'КС-3-1',
-        'КС-4',
-        'КС-4-1',
-        'КС-5',
-        'КС-5-1',
-        'КС-6',
-        'П-В-5',
-        'П-В-6',
-        'П-Г-2',
-        'П-Г-3-1',
-        'П-Г-6',
-        'П-Ж-1',
-        'П-Ж-7',
-        'П-ІН-1',
-        'П-КС-3-1',
-        'П-КС-4',
-        'П-КС-5',
-        'П-КС-6',
-        'П-Р-2',
-        'П-Р-3',
-        'П-Р-3-2',
-        'П-ТР-2-1',
-        'Р-1',
-        'Р-2',
-        'Р-3',
-        'Р-3-2',
-        'Р-3-4',
-        'Р-4',
-        'С-2',
-        'С-3',
-        'С-4'
+        'В-2', 'В-3', 'В-4', 'В-5', 'В-6', 'Г-1', 'Г-2', 'Г-3-1', 'Г-3-2', 'Г-3-3',
+        'Г-4-1', 'Г-4-2', 'Г-4-4', 'Г-5-1', 'Г-5-2', 'Г-6', 'Г-ТР -1-2', 'Ж-1', 'Ж-7',
+        'ІК', 'ІН-1', 'ІН-2', 'ІН-3', 'КВТ', 'КЛ-2', 'КС-2', 'КС-3', 'КС-3-1', 'КС-4',
+        'КС-4-1', 'КС-5', 'КС-5-1', 'КС-6', 'П-В-5', 'П-В-6', 'П-Г-2', 'П-Г-3-1', 'П-Г-6',
+        'П-Ж-1', 'П-Ж-7', 'П-ІН-1', 'П-КС-3-1', 'П-КС-4', 'П-КС-5', 'П-КС-6', 'П-Р-2',
+        'П-Р-3', 'П-Р-3-2', 'П-ТР-2-1', 'Р-1', 'Р-2', 'Р-3', 'Р-3-2', 'Р-3-4', 'Р-4',
+        'С-2', 'С-3', 'С-4'
     ]
 
     for zng_r in zng:
-        if len(zng_r[10].strip()) > 0:
-            zng_str = zng_r[9]+'|'+zng_r[10]
+        if len(zng_r.get('ZONONG1', '').strip()) > 0:
+            zng_str = zng_r.get('ZONING', '') + '|' + zng_r.get('ZONONG1', '')
             zng_lst.append(zng_str)
     
-    # group
     zng_lst = list(set(zng_lst))
-    # sort
     zng_lst.sort()
-    # grp and sorted to array
     for zng_str in zng_lst:
         zng_grp.append(zng_str.split('|'))
-    # text for printform
-    zng_text = ''
     zng_text = ''
     for zng_str in zng_grp:
-        zng_text += zng_str[1]+'; '
-    # docx links
+        zng_text += zng_str[1] + '; '
     for idx, zng_str in enumerate(zng_grp):
         if zng_str[0] in zng_docs:
             zng_grp[idx].append(zng_str[0])
         else:
             zng_grp[idx].append('nolnk')
 
-        zng_grp[idx].append(zng_str[0]+' '+zng_str[1])
+        zng_grp[idx].append(zng_str[0] + ' ' + zng_str[1])
 
-    # Добавление значений из zng[13] в zng_grp
     for zng_r in zng:
         for idx, zng_str in enumerate(zng_grp):
-            if zng_str[0] == zng_r[9]:
-                zng_grp[idx].append(zng_r[13])
+            if zng_str[0] == zng_r.get('ZONING', ''):
+                zng_grp[idx].append(zng_r.get('Shape_Area', 0))
         
     rl_grp = []
     rl_geom = []
     rl_type = 10
     rl_text = ''
 
-    # вместо плоской строки rl_str используем rl_geom {"str": '3|-|Червоні лінії Діпромісто', "geom": rlr[5]}
     for rlr in rl:
-        rl_geom.append({"str": '3|-|Червоні лінії Діпромісто', "geom": rlr[5]})
+        rl_geom.append({"str": '3|-|Червоні лінії Діпромісто', "geom": rlr.get('Shape_Length', 0)})
         if rl_type > 3:
             rl_type = 3
 
     for rlor in rlo:
-        if len(rlor[5].strip()) > 0:
-            rl_geom.append({"str": '1|Рішення міської ради №|' + rlor[5] + ' від ' + rlor[3].strftime('%d.%m.%Y'), "geom": rlor[10]})
+        if len(rlor.get('NOM_RESH', '').strip()) > 0:
+            rl_geom.append({"str": '1|Рішення міської ради №|' + rlor.get('NOM_RESH', '') + ' від ' + rlor.get('DATE_RESH', datetime.datetime.now()).strftime('%d.%m.%Y'), "geom": rlor.get('Shape_Length', 0)})
             if rl_type > 1:
                 rl_type = 1
-        elif len(rlor[8].strip()) > 0:
-            rl_geom.append({"str": '2|Протокол містобудівної ради №|' + rlor[8].replace('от', 'від'), "geom": rlor[10]})
+        elif len(rlor.get('PRIMECH', '').strip()) > 0:
+            rl_geom.append({"str": '2|Протокол містобудівної ради №|' + rlor.get('PRIMECH', '').replace('от', 'від'), "geom": rlor.get('Shape_Length', 0)})
             if rl_type > 2:
                 rl_type = 2
 
-    # удаляем дубликаты и сортируем rl_geom по полю "str"
     unique_rl_geom = {}
     for item in rl_geom:
         if item['str'] not in unique_rl_geom:
@@ -1219,21 +943,10 @@ def __parcelgeoml(parcel_geom=None, con=None):
     rl_geom = list(unique_rl_geom.values())
     rl_geom.sort(key=lambda x: x['str'])
 
-    # разделяем rl_geom[idx]['str'] на массив и добавляем ему в хвост элемент rl_geom[idx]['geom']
     for item in rl_geom:
         split_str = item['str'].split('|')
         split_str.append(str(item['geom']))
         rl_grp.append(split_str)
-
-
-    # Вывод результатов
-    print('')
-    print("rlo:", rlo)
-    print('')
-    print("rl_geom:", rl_geom)
-    print('')
-    print("rl_grp:", rl_grp)
-    print('')
 
     if rl_type == 1:
         rl_text = 'ЧЕРВОНІ ЛІНІЇ ЗАТВЕРДЖЕНІ РІШЕННЯМ МІСЬКОЇ РАДИ: <br>'
@@ -1249,25 +962,22 @@ def __parcelgeoml(parcel_geom=None, con=None):
     hist_text2 = ' - '
     hist_text21 = ''
     if hist[1] and hist[2]:
-        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини та в охоронній зоні об’єкта культурної спадщини'
-        hist_text21 = 'Зони охорони пам’яток архітектури та регулювання забудови пам’яток'
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об\'єкта культурної спадщини та в охоронній зоні об\'єкта культурної спадщини'
+        hist_text21 = 'Зони охорони пам\'яток архітектури та регулювання забудови пам\'яток'
     elif hist[1]:
-        hist_text2 = 'Ділянка знаходиться в охоронній зоні об’єкта культурної спадщини'
-        hist_text21 = 'Зони охорони пам’яток архітектури'
+        hist_text2 = 'Ділянка знаходиться в охоронній зоні об\'єкта культурної спадщини'
+        hist_text21 = 'Зони охорони пам\'яток архітектури'
     elif hist[2]:
-        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об’єкта культурної спадщини'
-        hist_text21 = 'Зони регулювання забудови пам’яток'
+        hist_text2 = 'Ділянка знаходиться в зоні регулювання забудови об\'єкта культурної спадщини'
+        hist_text21 = 'Зони регулювання забудови пам\'яток'
         
     hist_text3 = ' - '
     if hist[3]:
-        hist_text3 = 'Ділянка знаходиться в зоні об’єктів природно-заповідного фонду'
+        hist_text3 = 'Ділянка знаходиться в зоні об\'єктів природно-заповідного фонду'
         
     pzsvs_grp = []
-    # group
     pzsvs = list(set(pzsvs))
-    # sort
     pzsvs.sort()
-    # grp and sorted to array
     for pzsvs_str in pzsvs:
         pzsvs_grp.append(pzsvs_str.split('|'))
     
@@ -1301,11 +1011,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
     
     brd_text3 = ' - '
     if brd[2]:
-        brd_text3 = 'Ділянка знаходиться в межах об’єкта зеленого господарства'
+        brd_text3 = 'Ділянка знаходиться в межах об\'єкта зеленого господарства'
         
     otdocs_text1 = ' - '
     if other_docs[0]:
-        otdocs_text1 = 'Ділянка знаходиться в межах території на яку були надані містобудівні умови та обмеження'
+        otdocs_text1 = 'Ділянка знаходиться в межах території на яку были надані містобудівні умови та обмеження'
     
     otdocs_text2 = ' - '
     if other_docs[1]:
@@ -1317,7 +1027,7 @@ def __parcelgeoml(parcel_geom=None, con=None):
     
     otdocs_text4 = ' - '
     if other_docs[3]:
-        otdocs_text4 = 'Ділянка знаходиться в межах території на якій розглядалась можливість розташування об’єкта згідно протоколу містобудівної ради'
+        otdocs_text4 = 'Ділянка знаходиться в межах території на якій розглядалась возможность розташування об\'єкта згідно протоколу містобудівної ради'
     
     otdocs_text5 = ' - '
     if other_docs[4]:
@@ -1325,7 +1035,7 @@ def __parcelgeoml(parcel_geom=None, con=None):
     
     otdocs_text6 = ' - '
     if other_docs[5]:
-        otdocs_text6 = 'На території ділянки були надані дозволи'
+        otdocs_text6 = 'На території ділянки были надані дозволи'
     
     parceldata['zoning'] = zng_grp
     parceldata['zng_text'] = zng_text
@@ -1356,10 +1066,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
     
     return render_template('parcel_geom_l.html', parceldata=parceldata)
 
+
 @app.route('/printform', methods=['GET','POST'])
 def __printform():
-    # перенесен в статический html, который заполняет себя своим скриптом через данные вызвавшего окна window.opener
     return render_template('printform.html', printdata=printdata)
+
 
 @app.route('/find_geom/<find_addr>/<find_custmr>', methods=['GET'])
 def __find_geom(find_addr, find_custmr):
@@ -1367,13 +1078,9 @@ def __find_geom(find_addr, find_custmr):
         find_addr=''
     if (find_custmr=='empt_param'):
         find_custmr=''
-    # print('find_addr')
-    # print(find_addr)
-    # print('find_custmr')
-    # print(find_custmr)
 
-    con = psycopg2.connect(connstring)
-    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    con = psycopg.connect(connstring, row_factory=dict_row)
+    cur = con.cursor()
 
     sql = '''
         SELECT
@@ -1382,21 +1089,17 @@ def __find_geom(find_addr, find_custmr):
             zak,
             kodokpo
         FROM
-            arcgis.public."xml" x
+            public."xml" x
         WHERE
-            lower(x.str) like '%{addr}%' AND
-            lower(x.zak) like '%{custmr}%'
+            lower(x.str) like %s AND
+            lower(x.zak) like %s
         LIMIT 20
-        '''.format(addr=find_addr.lower(), custmr=find_custmr.lower())
-    # print(sql)
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (f'%{find_addr.lower()}%', f'%{find_custmr.lower()}%'))
     rows = cur.fetchall()
-
-    # for row in rows:
-        # print(row)
-        
     return jsonify(rows)
+
 
 @app.route('/find_trs/<find_addr>/<find_custmr>', methods=['GET'])
 def __find_trs(find_addr, find_custmr):
@@ -1405,51 +1108,43 @@ def __find_trs(find_addr, find_custmr):
     if (find_custmr=='empt_param'):
         find_custmr=''
     
-    con = psycopg2.connect(connstring)
-    cur = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    con = psycopg.connect(connstring, row_factory=dict_row)
+    cur = con.cursor()
 
     sql = '''
         SELECT
             ST_AsGeoJSON(geom) as geojson,
             *
         FROM
-            arcgis.public."Проекти_інженерних_мереж" tr
+            public."Проекти_інженерних_мереж" tr
         WHERE
-            lower(tr."шифр") like '%{addr}%'
+            lower(tr."шифр") like %s
         LIMIT 20
-        '''.format(addr=find_addr.lower())
+        '''
     
-    cur.execute(sql)
+    cur.execute(sql, (f'%{find_addr.lower()}%',))
     rows = cur.fetchall()
-
-    # for row in rows:
-        # print(row)
-        
     return jsonify(rows)
+
 
 @app.route('/render_poly', methods=['POST'])
 def __render_poly():
     req_data = request.get_json()
-    
-    file_path = r"E:\temp\exchange\geom.txt"
-    
+    file_path = Config.POLY_EXCHANGE_PATH
     if req_data.get('is_full') and isinstance(req_data.get('geoms'), list):
         proxy_data = {
             "res": "ok",
             "items": []
         }
-
         for item in req_data['geoms']:
             poly_type = item.get('poly_type', '')
             geom = item.get('geom', '')
-
             if poly_type and geom:
                 proxy_data["items"].append({
                     "poly_type": poly_type,
                     "data": geom
                 })
-
-        if not proxy_data["items"]:  # если список пустой, всё равно считаем как empty
+        if not proxy_data["items"]:
             proxy_data = {
                 "res": "empty"
             }
@@ -1457,18 +1152,14 @@ def __render_poly():
         proxy_data = {
             "res": "empty"
         }
-
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(proxy_data, file, ensure_ascii=False, indent=4)
-
     return f"Файл будет записан по пути: {file_path}"
 
 
 @app.route('/render_poly_old', methods=['POST'])
 def __render_poly_old():
     req_data = request.get_json()
-    # print(req_data)
-    
     if req_data.get('is_full'):
         proxy_data = {
             "res": "ok",
@@ -1479,27 +1170,29 @@ def __render_poly_old():
         proxy_data = {
             "res": "empty"
         }
-
-    file_path = r"E:\temp\exchange\geom.txt"
-
-    SHARED_FILE_PATH = "shared_file.txt"
+    file_path = Config.POLY_EXCHANGE_PATH
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(proxy_data, file, ensure_ascii=False, indent=4)
-
     return f"Файл будет записан по пути: {file_path}"
+
 
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('page_not_found.html'), 404
 
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static', filename)
 
-#любые шаблоны для которых нет другого маршрута
-@app.route('/<patch>')
-#@login_required
-def _routepatch(patch=None):
+def _routepatch(patch, data=None):
     try:
-        data = {} #get_trdata()
-
-        return render_template(patch + '.html', data = data)
-    except Exception as e:
+        template_name = patch + '.html'
+        # Проверяем существование шаблона
+        if not os.path.exists(os.path.join(app.template_folder, template_name)):
+            return page_not_found(404)
+        return render_template(template_name, data=data)
+    except TemplateNotFound:
         return page_not_found(404)
+    except Exception as e:
+        return render_template('error.html', error=str(e)), 500
+
