@@ -5,31 +5,19 @@ $ch = curl_init();
 // ------------------------------------------------------------
 // Чтение конфигурации
 // ------------------------------------------------------------
-$configFile = __DIR__ . '/widget_config.json';
+require_once __DIR__ . '/config_loader.php';
 
-if (!file_exists($configFile)) {
+try {
+    $config = ConfigLoader::load();
+    $flaskUrl = $config['flaskUrl'] ?? 'http://192.168.17.47:5024';
+} catch (RuntimeException $e) {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error'   => 'Configuration file not found.'
+        'error'   => 'Configuration error: ' . $e->getMessage()
     ]);
     exit;
 }
-
-$configContent = file_get_contents($configFile);
-$config = json_decode($configContent, true);
-
-if (json_last_error() !== JSON_ERROR_NONE) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error'   => 'Invalid JSON: ' . json_last_error_msg()
-    ]);
-    exit;
-}
-
-// Получаем URL из конфига
-$flaskUrl = $config['flaskUrl'] ?? 'http://192.168.17.47:5024';
 
 // ------------------------------------------------------------
 // Логика маршрутов

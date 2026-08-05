@@ -232,11 +232,11 @@ body {
             {% if row[2] == 'nolnk' %}
                 {{ row[0] }} - {{ row[1] }}
             {% else %}
-                <a href="#" onclick="window.open('https://gisserver.gapu.local/docs/{{ row[2] }}.htm', 
-                    'newwindow',
-                    'width=700,height=700,top=180,left=260');
-                    return false;" 
-                target="_blank">{{ row[0] }} - {{ row[1] }}</a>
+				<a href="#" onclick="window.open('{{ docs_base_url }}/docs/{{ row[2] }}.htm', 
+					'newwindow',
+					'width=700,height=700,top=180,left=260');
+					return false;" 
+				target="_blank">{{ row[0] }} - {{ row[1] }}</a>
             {% endif %}
             <input type="checkbox" checked="checked" class="zng-strings" _prnstr="{{ row[3] }}"><span class="checkmark"></span>
         </label>

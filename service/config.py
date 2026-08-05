@@ -8,10 +8,10 @@ class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'pst_secret'
 
     # Настройки прямого подключения к PostgreSQL/PostGIS для psycopg
-    DB_NAME = 'arcgis'
+    DB_NAME = 'postgis'
     DB_USER = 'postgres'
-    DB_PASSWORD = 'cbcntvrflfcnh'
-    DB_HOST = '192.168.17.46'
+    DB_PASSWORD = '!Q@W#E4r5t6y'
+    DB_HOST = '192.168.17.47'
     DB_PORT = 5432
 
     # Формирование единой строки подключения для routes.py
@@ -25,7 +25,9 @@ class Config(object):
     GSPWD = 'geoserver'
 
     # Путь обмена для ГИС-модуля экспорта полигонов
-    POLY_EXCHANGE_PATH = r"C:\geom.txt"
+    POLY_EXCHANGE_PATH = r"C:\Temp\geom.txt"
+    
+    DOCS_BASE_URL = 'https://servergapugis.gapu-gis.local'
 
 class ProductionConfig(Config):
     DEBUG = False
