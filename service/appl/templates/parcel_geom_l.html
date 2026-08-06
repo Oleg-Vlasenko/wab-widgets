@@ -256,6 +256,17 @@
         <span class="line-geom" data-poly-type="zoning" style="display:none;">{{ row[4:] | tojson }}</span>
 
       </div>
+      
+
+      <!-- Отладка: сырые данные zng -->
+    <!-- <pre style="background:#f0f0f0; padding:10px; border:1px solid #ccc; margin:10px 0; display:none;" id="debug-zng">
+        {% for row in parceldata['zng_debug'] %}
+            {{ row.keys() | tojson }}
+        {% endfor %}
+    </pre>
+      <button onclick="document.getElementById('debug-zng').style.display='block'">Показать отладку зонинга</button> -->
+
+
       {% endfor %}
     </div>
     {% endif %}

@@ -669,6 +669,12 @@ def __parcelgeoml(parcel_geom=None, con=None):
     for row in rows:
         zng.append(row)
 
+    # zng_debug = zng.copy()
+
+    # print('zng_debug')
+    # print(zng_debug)
+    # print('***zng_debug***')
+
     sql = '''
     SELECT *
     FROM public."Історичний ареал" n
@@ -913,7 +919,7 @@ def __parcelgeoml(parcel_geom=None, con=None):
     for zng_r in zng:
         for idx, zng_str in enumerate(zng_grp):
             if zng_str[0] == zng_r.get('ZONING', ''):
-                zng_grp[idx].append(zng_r.get('Shape_Area', 0))
+                zng_grp[idx].append(zng_r.get('geojson', 0))
         
     rl_grp = []
     rl_geom = []
@@ -1036,6 +1042,8 @@ def __parcelgeoml(parcel_geom=None, con=None):
     otdocs_text6 = ' - '
     if other_docs[5]:
         otdocs_text6 = 'На території ділянки были надані дозволи'
+
+    # parceldata['zng_debug'] = zng_debug # отладка!
     
     parceldata['zoning'] = zng_grp
     parceldata['zng_text'] = zng_text
