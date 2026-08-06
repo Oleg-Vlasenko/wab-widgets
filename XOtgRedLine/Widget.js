@@ -131,6 +131,28 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 dom.byId('message').innerHTML = "";
             },
 
+            _onBtnSelectedClick: function() {
+                var self = this;
+                var graphic = self.map.graphics.graphics[0];
+                
+                if (!graphic) {
+                    dom.byId('message').innerHTML = "Спочатку виділіть область на мапі";
+                    return;
+                }
+                
+                var geojson = {
+                    type: "POLYGON",
+                    coordinates: graphic.geometry.rings
+                };
+                var geojsonStr = JSON.stringify(geojson);
+                
+                dom.byId('message').innerHTML = "Отримання інформації...";
+                
+                // Тут буде виклик сервісу
+                console.log("GeoJSON для запиту:", geojsonStr);
+            },
+
+
             addToMap: function (evt) {
                 var self = this;
                 var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';

@@ -1,5 +1,4 @@
 ﻿<div>
-
     <h2>Вибрати червоні лінії на мапі</h2>
     <div>
         <div class="select-dijit-container" data-dojo-attach-point="selectDijitNode">
@@ -19,12 +18,18 @@
 
         </div>
 
-        <div class="seperator"></div>
+        <div class="seperator mg-separator"></div>
+        <div style="margin-bottom: 30px">
+            <h2>Інформація про обрану червону лінію</h2>
+
+            <div class="jimu-btn" data-dojo-attach-event="onclick:_onBtnSelectedClick" style="color:white; background-color:cadetblue; width: 200px;">
+                Отримати інформацію
+            </div>
+        </div>
 
         <div style="padding-bottom:20px; padding-left:10px;">
             <br>
             <label id="message" class="label" style="color:green;"></label>
-            <!-- Новый контейнер для вывода информации о слоях -->
             <div data-dojo-attach-point="layersInfoNode" style="color:blue; font-family:monospace; white-space:pre;"></div>
         </div>
 

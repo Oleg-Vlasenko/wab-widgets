@@ -89,6 +89,40 @@ def testdb():
 
 @app.route('/rlupload/<parcel_geom>', methods=['GET'])
 def red_lines_upload(parcel_geom=None, con=None):
+    import dicttoxml
+    import xml.etree.ElementTree as ET
+    from xml.dom import minidom
+
+    def dict_to_xml_pretty(data, root_name='features'):
+        if not data:
+            return ''
+        
+        root = ET.Element(root_name)
+        _build_xml_element(root, data)
+        
+        xml_str = ET.tostring(root, encoding='unicode')
+        dom = minidom.parseString(xml_str.encode('utf-8'))
+        return dom.toprettyxml(indent="  ")
+
+    def _build_xml_element(parent, data):
+        """Рекурсивно строит XML из dict/list/примитивов"""
+        if isinstance(data, dict):
+            for key, value in data.items():
+                # Очищаем ключ от недопустимых символов для XML
+                clean_key = ''.join(c for c in key if c.isalnum() or c == '_')
+                elem = ET.SubElement(parent, clean_key)
+                _build_xml_element(elem, value)
+        elif isinstance(data, list):
+            for item in data:
+                # Для списков создаем элемент <item>
+                elem = ET.SubElement(parent, 'item')
+                _build_xml_element(elem, item)
+        else:
+            # Примитивы: str, int, float, bool, None
+            if data is None:
+                parent.text = ''
+            else:
+                parent.text = str(data)
 
     result = {}
     if not parcel_geom:
@@ -121,7 +155,8 @@ def red_lines_upload(parcel_geom=None, con=None):
     '''
 
     cur.execute(sql, (parcel_geom,))
-    rl = cur.fetchone()[0]
+    row = cur.fetchone()
+    rl = row['geojson'] if row else None
     
     parceldata["rl"] = rl
     
@@ -143,9 +178,16 @@ def red_lines_upload(parcel_geom=None, con=None):
     '''
 
     cur.execute(sql, (parcel_geom,))
-    rlo = cur.fetchone()[0]
+    row = cur.fetchone()
+    rlo = row['geojson'] if row else None
     
     parceldata["rlo"] = rlo
+
+    rl_xml = dict_to_xml_pretty(rl) if rl else ''
+    rlo_xml = dict_to_xml_pretty(rlo) if rlo else ''
+
+    parceldata["rl_xml"] = rl_xml
+    parceldata["rlo_xml"] = rlo_xml
     
     return render_template('rl_upload.html', parceldata=parceldata)
 

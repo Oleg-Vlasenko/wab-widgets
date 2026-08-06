@@ -57,6 +57,15 @@
     <pre>{{ parceldata['rl'] | tojson(indent=2) }}</pre>
   </div>
 
+  <h3>Червоні лінії за матеріалами ДП (XML)</h3>
+  <div class="pre-container" id="rl-xml-container">
+      <div class="button-group">
+          <button onclick="togglePre('rl-xml-container', this)">Розгорнути</button>
+          <button onclick="downloadPre('rl-xml-container', 'rl.xml')">Завантажити</button>
+      </div>
+      <pre>{{ parceldata['rl_xml'] | e }}</pre>
+  </div>
+
   <h3>Iнші розроблені червоні лінії</h3>
   <div class="pre-container" id="rlo-container">
     <div class="button-group">
@@ -64,6 +73,15 @@
       <button onclick="downloadPre('rlo-container', 'rlo.geojson')">Завантажити</button>
     </div>
     <pre>{{ parceldata['rlo'] | tojson(indent=2) }}</pre>
+  </div>
+
+  <h3>Iнші розроблені червоні лінії (XML)</h3>
+  <div class="pre-container" id="rlo-xml-container">
+      <div class="button-group">
+          <button onclick="togglePre('rlo-xml-container', this)">Розгорнути</button>
+          <button onclick="downloadPre('rlo-xml-container', 'rlo.xml')">Завантажити</button>
+      </div>
+      <pre>{{ parceldata['rlo_xml'] | e }}</pre>
   </div>
 
   <script>
