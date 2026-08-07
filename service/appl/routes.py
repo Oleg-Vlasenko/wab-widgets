@@ -191,6 +191,50 @@ def red_lines_upload(parcel_geom=None, con=None):
     
     return render_template('rl_upload.html', parceldata=parceldata)
 
+@app.route('/show_redline/<geojson_data>', methods=['GET'])
+def show_redline(geojson_data=None):
+    import xml.etree.ElementTree as ET
+    from xml.dom import minidom
+    
+    def dict_to_xml_pretty(data, root_name='features'):
+        if not data:
+            return ''
+        
+        root = ET.Element(root_name)
+        _build_xml_element(root, data)
+        
+        xml_str = ET.tostring(root, encoding='unicode')
+        dom = minidom.parseString(xml_str.encode('utf-8'))
+        return dom.toprettyxml(indent="  ")
+
+    def _build_xml_element(parent, data):
+        if isinstance(data, dict):
+            for key, value in data.items():
+                clean_key = ''.join(c for c in key if c.isalnum() or c == '_')
+                elem = ET.SubElement(parent, clean_key)
+                _build_xml_element(elem, value)
+        elif isinstance(data, list):
+            for item in data:
+                elem = ET.SubElement(parent, 'item')
+                _build_xml_element(elem, item)
+        else:
+            if data is None:
+                parent.text = ''
+            else:
+                parent.text = str(data)
+
+    if not geojson_data:
+        return "No GeoJSON data provided", 400
+    
+    try:
+        geojson_obj = json.loads(geojson_data)
+    except:
+        geojson_obj = {"error": "Invalid GeoJSON"}
+    
+    geojson_xml = dict_to_xml_pretty(geojson_obj)
+    
+    return render_template('show_redline.html', geojson=geojson_obj, geojson_xml=geojson_xml)
+
 
 @app.route('/parcelgeom/<parcel_geom>', methods=['GET','POST'])
 def __parcelgeom(parcel_geom=None, con=None):
@@ -711,12 +755,6 @@ def __parcelgeoml(parcel_geom=None, con=None):
     for row in rows:
         zng.append(row)
 
-    # zng_debug = zng.copy()
-
-    # print('zng_debug')
-    # print(zng_debug)
-    # print('***zng_debug***')
-
     sql = '''
     SELECT *
     FROM public."Історичний ареал" n
@@ -1084,8 +1122,6 @@ def __parcelgeoml(parcel_geom=None, con=None):
     otdocs_text6 = ' - '
     if other_docs[5]:
         otdocs_text6 = 'На території ділянки были надані дозволи'
-
-    # parceldata['zng_debug'] = zng_debug # отладка!
     
     parceldata['zoning'] = zng_grp
     parceldata['zng_text'] = zng_text

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Обрана червона лінія</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: monospace; background: #f9f9f9; padding: 20px; }
+    .pre-container {
+      position: relative;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      background: #fff;
+      overflow: hidden;
+      max-height: 14em;
+      transition: max-height 0.3s ease;
+    }
+    .pre-container.expanded {
+      max-height: 1000px;
+    }
+    pre {
+      margin: 0;
+      padding: 10px;
+      overflow-x: auto;
+    }
+    .button-group {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+    }
+    .button-group button {
+      background: #ccc;
+      color: #000;
+      border: none;
+      padding: 2px 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      margin-left: 5px;
+    }
+    h1, h2, h3 { 
+      font-family: 'Roboto', sans-serif; 
+    }
+  </style>
+</head>
+<body>
+  <h2>Обрана червона лінія</h2>
+
+  <h3>GeoJSON</h3>
+  <div class="pre-container" id="geojson-container">
+    <div class="button-group">
+      <button onclick="togglePre('geojson-container', this)">Розгорнути</button>
+      <button onclick="downloadPre('geojson-container', 'redline.geojson')">Завантажити</button>
+    </div>
+    <pre>{{ geojson | tojson(indent=2) }}</pre>
+  </div>
+
+  <h3>XML</h3>
+  <div class="pre-container" id="xml-container">
+    <div class="button-group">
+      <button onclick="togglePre('xml-container', this)">Розгорнути</button>
+      <button onclick="downloadPre('xml-container', 'redline.xml')">Завантажити</button>
+    </div>
+    <pre>{{ geojson_xml | e }}</pre>
+  </div>
+
+  <script>
+    function togglePre(containerId, btn) {
+      const container = document.getElementById(containerId);
+      const pre = container.querySelector('pre');
+
+      if (container.classList.contains('expanded')) {
+        container.style.maxHeight = '14em';
+        container.classList.remove('expanded');
+        btn.textContent = 'Розгорнути';
+      } else {
+        container.style.maxHeight = pre.scrollHeight + 'px';
+        container.classList.add('expanded');
+        btn.textContent = 'Згорнути';
+      }
+    }
+
+    function downloadPre(containerId, filename) {
+      const container = document.getElementById(containerId);
+      const pre = container.querySelector('pre');
+      const text = pre.textContent;
+      const blob = new Blob([text], {type: "application/json;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

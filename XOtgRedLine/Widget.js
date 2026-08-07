@@ -131,25 +131,33 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 dom.byId('message').innerHTML = "";
             },
 
-            _onBtnSelectedClick: function() {
+            _onBtnSelectedClick: function () {
                 var self = this;
-                var graphic = self.map.graphics.graphics[0];
-                
-                if (!graphic) {
-                    dom.byId('message').innerHTML = "Спочатку виділіть область на мапі";
+                var __mg_map = self.map;
+                var feat = __mg_map.infoWindow.getSelectedFeature();
+
+                if (!feat) {
+                    dom.byId('message').innerHTML = "Об'єкт не вибрано. Будь ласка, виберіть червону лінію на карті.";
                     return;
                 }
-                
+
+                var flaskUrl = window.__mg_widgetConfig && window.__mg_widgetConfig.flaskUrl || '/';
+
                 var geojson = {
-                    type: "POLYGON",
-                    coordinates: graphic.geometry.rings
+                    type: "LineString",
+                    coordinates: feat.geometry.paths[0]
                 };
                 var geojsonStr = JSON.stringify(geojson);
-                
+
                 dom.byId('message').innerHTML = "Отримання інформації...";
-                
-                // Тут буде виклик сервісу
-                console.log("GeoJSON для запиту:", geojsonStr);
+
+                window.open(
+                    flaskUrl + '/show_redline/' + encodeURIComponent(geojsonStr),
+                    "ModalPopUp",
+                    "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100"
+                );
+
+                dom.byId('message').innerHTML = "";
             },
 
 
