@@ -93,6 +93,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 }
             },
 
+
+
             postCreate: function () {
                 this.inherited(arguments);
                 var self = this;
@@ -103,7 +105,35 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 }, function (error) {
                     console.error('Failed to load config:', error);
                 });
+
+                var style = document.createElement('style');
+                style.innerHTML = '.mg-tab-bar { display: flex; margin-bottom: 15px; border-bottom: 2px solid #ddd; } ' +
+                    '.mg-tab-btn { padding: 8px 16px; cursor: pointer; background: #f5f5f5; border: 1px solid #ddd; border-bottom: none; margin-right: 4px; border-radius: 4px 4px 0 0; font-weight: bold; } ' +
+                    '.mg-tab-btn:hover { background: #e8e8e8; } ' +
+                    '.mg-tab-btn.mg-active { background: cadetblue; color: white; border-color: cadetblue; } ' +
+                    '.mg-tab-content { display: none; padding: 10px 0; } ' +
+                    '.mg-tab-content.mg-active { display: block; } ' +
+                    '.mg-bottom-block { margin-top: 20px; border-top: 2px solid #ddd; padding-top: 15px; }';
+                document.head.appendChild(style);
+
+                setTimeout(function () {
+                    var tabBtns = document.querySelectorAll('.mg-tab-btn');
+                    var tabContents = document.querySelectorAll('.mg-tab-content');
+                    tabBtns.forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            tabBtns.forEach(function (b) { b.classList.remove('mg-active'); });
+                            tabContents.forEach(function (c) { c.classList.remove('mg-active'); });
+                            this.classList.add('mg-active');
+                            var target = document.getElementById(this.getAttribute('data-tab'));
+                            if (target) {
+                                target.classList.add('mg-active');
+                            }
+                        });
+                    });
+                }, 100);
             },
+
+
 
             _initGraphicsLayers: function () {
                 this._graphicsLayer = new GraphicsLayer();
