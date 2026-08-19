@@ -166,10 +166,16 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 this.map.hideZoomSlider();
             },
 
+
+
             _onBtnClearClick: function () {
                 this.map.graphics.clear();
                 dom.byId('message').innerHTML = "";
+                var container = dom.byId('mg-srch-results-trs');
+                container.innerHTML = '';
+                dom.byId('mg-req-track').value = '';
             },
+
 
             _onBtnSelectedClick: function () {
                 var self = this;
