@@ -107,13 +107,18 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 });
 
                 var style = document.createElement('style');
+
+
                 style.innerHTML = '.mg-tab-bar { display: flex; margin-bottom: 15px; border-bottom: 2px solid #ddd; } ' +
-                    '.mg-tab-btn { padding: 8px 16px; cursor: pointer; background: #f5f5f5; border: 1px solid #ddd; border-bottom: none; margin-right: 4px; border-radius: 4px 4px 0 0; font-weight: bold; } ' +
+                    '.mg-tab-btn { padding: 8px 16px; cursor: pointer; background: #f5f5f5; border: 1px solid #ddd; border-bottom: none; margin-right: 4px; border-radius: 4px 4px 0 0; font-weight: 400; color: #888; } ' +
                     '.mg-tab-btn:hover { background: #e8e8e8; } ' +
-                    '.mg-tab-btn.mg-active { background: cadetblue; color: white; border-color: cadetblue; } ' +
+                    '.mg-tab-btn.mg-active { background: azure; color: seagreen; border-color: #ddd; border-bottom: none; font-weight: 600; } ' +
                     '.mg-tab-content { display: none; padding: 10px 0; } ' +
                     '.mg-tab-content.mg-active { display: block; } ' +
                     '.mg-bottom-block { margin-top: 20px; border-top: 2px solid #ddd; padding-top: 15px; }';
+
+
+
                 document.head.appendChild(style);
 
                 setTimeout(function () {
@@ -177,13 +182,20 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             },
 
 
+
+
             _onBtnSelectedClick: function () {
                 var self = this;
                 var __mg_map = self.map;
                 var feat = __mg_map.infoWindow.getSelectedFeature();
 
+                if (!feat) {
+                    alert('Не вибрано жодного об\'єкту!');
+                    return;
+                }
+
                 var layer_name = feat._layer.name;
-                if (layer_name.substring(0, 24) != 'Проекти інженерних мереж') {
+                if (layer_name != 'Проектні мережі' && layer_name != 'Проекти інженерних мереж надані на розгляд технічної ради') {
                     alert('Не вибрано об\'єкт інженерних мереж!');
                     return;
                 }
@@ -203,6 +215,8 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     "ModalPopUp",
                     "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
             },
+
+
 
             _onTest1Click: function () {
                 var self = this;
@@ -436,6 +450,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 };
 
                 var req_track = document.getElementById('mg-req-track').value;
+                req_track = encodeURIComponent(req_track);
                 if (!req_track.length) {
                     alert('Порожній запит!');
                     return;

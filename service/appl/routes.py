@@ -1187,8 +1187,11 @@ def __find_geom(find_addr, find_custmr):
     return jsonify(rows)
 
 
-@app.route('/find_trs/<find_addr>/<find_custmr>', methods=['GET'])
+@app.route('/find_trs/<path:find_addr>/<find_custmr>', methods=['GET'])
 def __find_trs(find_addr, find_custmr):
+    find_addr = find_addr.replace('+', ' ')
+    find_addr = find_addr.replace('/', '/')
+
     if (find_addr=='empt_param'):
         find_addr=''
     if (find_custmr=='empt_param'):
@@ -1200,15 +1203,27 @@ def __find_trs(find_addr, find_custmr):
     sql = '''
         SELECT
             ST_AsGeoJSON(geom) as geojson,
-            *
+            name,
+            name_kom,
+            шифр
         FROM
-            public."Проекти_інженерних_мереж" tr
+            public."seti_nesoglasov_new" tr
+        WHERE
+            lower(tr."шифр") like %s
+        UNION ALL
+        SELECT
+            ST_AsGeoJSON(geom) as geojson,
+            name,
+            name_kom,
+            шифр
+        FROM
+            public."union_seti" tr
         WHERE
             lower(tr."шифр") like %s
         LIMIT 20
         '''
     
-    cur.execute(sql, (f'%{find_addr.lower()}%',))
+    cur.execute(sql, (f'%{find_addr.lower()}%', f'%{find_addr.lower()}%'))
     rows = cur.fetchall()
     return jsonify(rows)
 
