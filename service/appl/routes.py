@@ -1013,11 +1013,11 @@ def __parcelgeoml(parcel_geom=None, con=None):
 
     for rlor in rlo:
         if len(rlor.get('NOM_RESH', '').strip()) > 0:
-            rl_geom.append({"str": '1|Рішення міської ради №|' + rlor.get('NOM_RESH', '') + ' від ' + rlor.get('DATE_RESH', datetime.datetime.now()).strftime('%d.%m.%Y'), "geom": rlor.get('Shape_Length', 0)})
+            rl_geom.append({"str": '1|Рішення міської ради №|' + rlor.get('NOM_RESH', '') + ' від ' + rlor.get('DATE_RESH', datetime.datetime.now()).strftime('%d.%m.%Y'), "geom": rlor.get('geojson', 0)})
             if rl_type > 1:
                 rl_type = 1
         elif len(rlor.get('PRIMECH', '').strip()) > 0:
-            rl_geom.append({"str": '2|Протокол містобудівної ради №|' + rlor.get('PRIMECH', '').replace('от', 'від'), "geom": rlor.get('Shape_Length', 0)})
+            rl_geom.append({"str": '2|Протокол містобудівної ради №|' + rlor.get('PRIMECH', '').replace('от', 'від'), "geom": rlor.get('geojson', 0)})
             if rl_type > 2:
                 rl_type = 2
 

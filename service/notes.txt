@@ -1,0 +1,19 @@
+
+
+-- DROP TABLE public.users;
+
+CREATE TABLE public.users (
+	id serial,
+	username varchar(64) NULL,
+	email varchar(120) NULL,
+	password_hash varchar(128) NULL,
+	status int2 NOT NULL DEFAULT 0,
+	CONSTRAINT users_pk PRIMARY KEY (id),
+	CONSTRAINT users_un UNIQUE (username)
+);
+
+
+insert into public.users (id,username,email,password_hash,status) values
+	 (1,'vin','vin@vin.com','pbkdf2:sha256:150000$XWv5YK2D$7e9743769b5466bd6b41ffe22ae2aacd68d830cbbfa525681d2abf83b5037860',8),
+	 (2,'admin','admin@gm.com','pbkdf2:sha256:260000$n2kxtBHysXzhCCjf$a3b533640eb33ca74e7faebed94e358fab4d78b7da3103c975e91e81fa39e73d',8),
+	 (3,'user','user@user.com','pbkdf2:sha256:260000$ObKN4jHk3St7MXZS$81425dd1604bb77f021eee8eb838e740db9256ae91106bc43089aaf8669a4472',0);
