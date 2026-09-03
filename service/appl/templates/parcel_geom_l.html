@@ -261,6 +261,40 @@
     </div>
     {% endif %}
 
+    {% if parceldata['red_lines']|length > 0 %}
+    <div class="table">
+
+      <div class="row header blue">
+        <div class="cell cell1">
+          <label class="container">&nbsp;
+            Червоні лінії
+            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}"
+              _prnhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
+      </div>
+
+      {% for row in parceldata['red_lines'] %}
+      <div class="row data-row">
+        <div class="cell cell1" data-title="id">
+          <label class="container">{{ row[1] }}
+            <input type="checkbox" class="rl-strings-{{ row[0] }}" _prnstr="{{ row[2] }}"><span
+              class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+          {{ row[2] }}
+        </div>
+
+        <span class="line-geom" data-poly-type="redlines" style="display:none;">{{ row[3]|tojson }}</span>
+
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% if parceldata['hist'][0] or parceldata['hist'][1] or parceldata['hist'][2] or parceldata['hist'][3] %}
     <div class="table">
 
@@ -317,40 +351,6 @@
       </div>
       {% endif %}
 
-    </div>
-    {% endif %}
-
-    {% if parceldata['red_lines']|length > 0 %}
-    <div class="table">
-
-      <div class="row header blue">
-        <div class="cell cell1">
-          <label class="container">&nbsp;
-            Червоні лінії
-            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}"
-              _prnhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
-          </label>
-        </div>
-        <div class="cell cell2">
-        </div>
-      </div>
-
-      {% for row in parceldata['red_lines'] %}
-      <div class="row data-row">
-        <div class="cell cell1" data-title="id">
-          <label class="container">{{ row[1] }}
-            <input type="checkbox" class="rl-strings-{{ row[0] }}" _prnstr="{{ row[2] }}"><span
-              class="checkmark str-checkmark"></span>
-          </label>
-        </div>
-        <div class="cell" data-title="data">
-          {{ row[2] }}
-        </div>
-
-        <span class="line-geom" data-poly-type="redlines" style="display:none;">{{ row[3]|tojson }}</span>
-
-      </div>
-      {% endfor %}
     </div>
     {% endif %}
 

@@ -816,7 +816,7 @@ def __parcelgeoml(parcel_geom=None, con=None):
     pzsvs = []
     pzsvs_type = [False, False]
     for row in rows:
-        pzsvs.append('Прибережні захисні смуги, ріш. №|' + str(row.get('n_reshen', '')) + ' від ' + row.get('date_reshe', datetime.date.today()).strftime('%d.%m.%Y'))
+        pzsvs.append('Прибережні захисні смуги, ріш. №|' + str(row.get('n_reshen', '')) + ' від ' + (row.get('date_reshe', datetime.date.today()).strftime('%d.%m.%Y') if row.get('date_reshe') else 'дата відсутня'))
         if not pzsvs_type[0]:
             pzsvs_type[0] = True
         
@@ -829,7 +829,7 @@ def __parcelgeoml(parcel_geom=None, con=None):
     cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
     for row in rows:
-        pzsvs.append('Водоохоронні зони, ріш. №|' + str(row.get('nom_reshen', '')) + ' від ' + row.get('data_reshe', datetime.date.today()).strftime('%d.%m.%Y'))
+        pzsvs.append('Водоохоронні зони, ріш. №|' + str(row.get('nom_reshen', '')) + ' від ' + (row.get('data_reshe', datetime.date.today()).strftime('%d.%m.%Y') if row.get('data_reshe') else 'дата відсутня'))
         if not pzsvs_type[1]:
             pzsvs_type[1] = True
         
@@ -856,7 +856,7 @@ def __parcelgeoml(parcel_geom=None, con=None):
     cur.execute(sql, (parcel_geom,))
     rows = cur.fetchall()
     for row in rows:
-        prot2.append(str(row.get('kadnom', '')) + '|' + str(row.get('datasgo', '')) + ' від ' + row.get('dataprod', datetime.date.today()).strftime('%d.%m.%Y'))
+        prot2.append(str(row.get('kadnom', '')) + '|' + str(row.get('datasgo', '')) + ' від ' + (row.get('dataprod', datetime.date.today()).strftime('%d.%m.%Y') if row.get('dataprod') else 'дата відсутня'))
 
     sql = '''
     SELECT *
@@ -1007,13 +1007,13 @@ def __parcelgeoml(parcel_geom=None, con=None):
     rl_text = ''
 
     for rlr in rl:
-        rl_geom.append({"str": '3|-|Червоні лінії Діпромісто', "geom": rlr.get('Shape_Length', 0)})
+        rl_geom.append({"str": '3|-|Червоні лінії Діпромісто', "geom": rlr.get('geojson', 0)})
         if rl_type > 3:
             rl_type = 3
 
     for rlor in rlo:
         if len(rlor.get('NOM_RESH', '').strip()) > 0:
-            rl_geom.append({"str": '1|Рішення міської ради №|' + rlor.get('NOM_RESH', '') + ' від ' + rlor.get('DATE_RESH', datetime.datetime.now()).strftime('%d.%m.%Y'), "geom": rlor.get('geojson', 0)})
+            rl_geom.append({"str": '1|Рішення міської ради №|' + rlor.get('NOM_RESH', '') + ' від ' + (rlor.get('DATE_RESH', datetime.datetime.now()).strftime('%d.%m.%Y') if rlor.get('DATE_RESH') else 'дата відсутня'), "geom": rlor.get('geojson', 0)})
             if rl_type > 1:
                 rl_type = 1
         elif len(rlor.get('PRIMECH', '').strip()) > 0:

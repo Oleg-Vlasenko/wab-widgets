@@ -182,6 +182,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
 
 
+
             _onBtnSelectedClick: function () {
                 var self = this;
                 var __mg_map = self.map;
@@ -196,6 +197,15 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                 if (layer_name != 'Проектні мережі' && layer_name != 'Проекти інженерних мереж надані на розгляд технічної ради') {
                     alert('Не вибрано об\'єкт інженерних мереж!');
                     return;
+                }
+
+                // ЗАПОМНИТЬ ТРАССУ ДЛЯ ЗЕЛЁНОЙ ОТРИСОВКИ
+                if (feat.geometry && feat.geometry.paths) {
+                    var geojson = {
+                        type: "LineString",
+                        coordinates: feat.geometry.paths[0]
+                    };
+                    window.__mg_test2 = JSON.stringify(geojson);
                 }
 
                 var extent = feat.geometry.getExtent();
@@ -227,124 +237,119 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     try {
                         var res = JSON.parse(xhrReq.response);
 
-                        if (res.res === 'empty' || !Array.isArray(res.items) || res.items.length === 0) {
-                            alert('Нет выбранного объекта!');
-                            return;
-                        }
-
                         __mg_map.graphics.clear();
                         var srMap = __mg_map.extent.spatialReference;
                         var graphics = [];
 
-                        res.items.forEach(function (item) {
-                            var poly_type = (item.poly_type || '').trim();
-                            if (!poly_type || !item.data) return;
+                        if (res.res !== 'empty' && Array.isArray(res.items) && res.items.length > 0) {
+                            res.items.forEach(function (item) {
+                                var poly_type = (item.poly_type || '').trim();
+                                if (!poly_type || !item.data) return;
 
-                            try {
-                                var coords_str = JSON.parse(item.data);
-                                var obj_coords = JSON.parse(coords_str);
-                                var coords = obj_coords.coordinates[0];
-                                var labelCoord = coords[0];
-                                var labelPoint = new Point(labelCoord[0], labelCoord[1], srMap);
+                                try {
+                                    var coords_str = JSON.parse(item.data);
+                                    var obj_coords = JSON.parse(coords_str);
+                                    var coords = obj_coords.coordinates[0];
+                                    var labelCoord = coords[0];
+                                    var labelPoint = new Point(labelCoord[0], labelCoord[1], srMap);
 
-                                if (poly_type === 'zoning') {
-                                    var myPolygon = {
-                                        geometry: {
-                                            rings: coords,
-                                            spatialReference: srMap
-                                        },
-                                        symbol: {
-                                            color: [0, 255, 255, 180],
-                                            outline: {
-                                                color: [0, 100, 255, 255],
-                                                width: 3,
-                                                type: 'esriSLS',
-                                                style: 'esriSLSSolid'
-                                            },
-                                            type: 'esriSFS',
-                                            style: 'esriSFSSolid'
-                                        }
-                                    };
-
-                                    var gra = new Graphic(myPolygon);
-                                    __mg_map.graphics.add(gra);
-                                    graphics.push(gra);
-
-                                    var bgSymbol = new SimpleMarkerSymbol("square", 40, null, new Color([255, 255, 255, 255]));
-                                    bgSymbol.setOutline(null);
-                                    var bgGraphic = new Graphic(labelPoint, bgSymbol);
-                                    __mg_map.graphics.add(bgGraphic);
-
-                                    var textSymbol = new TextSymbol("Зонінг")
-                                        .setColor(new Color([0, 0, 0]))
-                                        .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
-                                        .setOffset(0, -120);
-
-                                    var textGraphic = new Graphic(labelPoint, textSymbol);
-                                    __mg_map.graphics.add(textGraphic);
-
-                                } else if (poly_type === 'redlines') {
-                                    var myPolyline = {
-                                        geometry: {
-                                            paths: [coords],
-                                            spatialReference: srMap
-                                        },
-                                        symbol: {
-                                            color: [200, 20, 60, 255],
-                                            width: 5,
-                                            type: 'esriSLS',
-                                            style: 'esriSLSSolid'
-                                        }
-                                    };
-
-                                    var gra = new Graphic(myPolyline);
-                                    __mg_map.graphics.add(gra);
-                                    graphics.push(gra);
-
-                                    var textSymbol = new TextSymbol("Червона лінія")
-                                        .setColor(new Color([200, 20, 60, 255]))
-                                        .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
-                                        .setOffset(0, 20);
-
-                                    var textGraphic = new Graphic(labelPoint, textSymbol);
-                                    __mg_map.graphics.add(textGraphic);
-
-                                    if (window.__mg_test2) {
-                                        var tcr = JSON.parse(window.__mg_test2);
-                                        var myPolyline2 = {
+                                    if (poly_type === 'zoning') {
+                                        var myPolygon = {
                                             geometry: {
-                                                paths: [tcr.coordinates],
+                                                rings: coords,
                                                 spatialReference: srMap
                                             },
                                             symbol: {
-                                                color: [0, 180, 120, 255],
+                                                color: [0, 255, 255, 180],
+                                                outline: {
+                                                    color: [0, 100, 255, 255],
+                                                    width: 3,
+                                                    type: 'esriSLS',
+                                                    style: 'esriSLSSolid'
+                                                },
+                                                type: 'esriSFS',
+                                                style: 'esriSFSSolid'
+                                            }
+                                        };
+                                        var gra = new Graphic(myPolygon);
+                                        __mg_map.graphics.add(gra);
+                                        graphics.push(gra);
+
+                                        var bgSymbol = new SimpleMarkerSymbol("square", 40, null, new Color([255, 255, 255, 255]));
+                                        bgSymbol.setOutline(null);
+                                        var bgGraphic = new Graphic(labelPoint, bgSymbol);
+                                        __mg_map.graphics.add(bgGraphic);
+
+                                        var textSymbol = new TextSymbol("Зонінг")
+                                            .setColor(new Color([0, 0, 0]))
+                                            .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                            .setOffset(0, -120);
+                                        var textGraphic = new Graphic(labelPoint, textSymbol);
+                                        __mg_map.graphics.add(textGraphic);
+
+                                    } else if (poly_type === 'redlines') {
+                                        var myPolyline = {
+                                            geometry: {
+                                                paths: [coords],
+                                                spatialReference: srMap
+                                            },
+                                            symbol: {
+                                                color: [200, 20, 60, 255],
                                                 width: 5,
                                                 type: 'esriSLS',
                                                 style: 'esriSLSSolid'
                                             }
                                         };
+                                        var gra = new Graphic(myPolyline);
+                                        __mg_map.graphics.add(gra);
+                                        graphics.push(gra);
 
-                                        var gra2 = new Graphic(myPolyline2);
-                                        __mg_map.graphics.add(gra2);
-                                        graphics.push(gra2);
-
-                                        var tcrFirst = tcr.coordinates[0];
-                                        var labelPoint2 = new Point(tcrFirst[0], tcrFirst[1], srMap);
-
-                                        var textSymbol2 = new TextSymbol("Обрана траса")
-                                            .setColor(new Color([0, 80, 32, 255]))
+                                        var textSymbol = new TextSymbol("Червона лінія")
+                                            .setColor(new Color([200, 20, 60, 255]))
                                             .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
                                             .setOffset(0, 20);
-
-                                        var textGraphic2 = new Graphic(labelPoint2, textSymbol2);
-                                        __mg_map.graphics.add(textGraphic2);
+                                        var textGraphic = new Graphic(labelPoint, textSymbol);
+                                        __mg_map.graphics.add(textGraphic);
                                     }
-                                }
 
+                                } catch (err) {
+                                    // ignore individual errors
+                                }
+                            });
+                        }
+
+                        // Отрисовка трассы (зелёная линия) ВСЕГДА, если есть данные
+                        if (window.__mg_test2) {
+                            try {
+                                var tcr = JSON.parse(window.__mg_test2);
+                                var myPolyline2 = {
+                                    geometry: {
+                                        paths: [tcr.coordinates],
+                                        spatialReference: srMap
+                                    },
+                                    symbol: {
+                                        color: [0, 180, 120, 255],
+                                        width: 5,
+                                        type: 'esriSLS',
+                                        style: 'esriSLSSolid'
+                                    }
+                                };
+                                var gra2 = new Graphic(myPolyline2);
+                                __mg_map.graphics.add(gra2);
+                                graphics.push(gra2);
+
+                                var tcrFirst = tcr.coordinates[0];
+                                var labelPoint2 = new Point(tcrFirst[0], tcrFirst[1], srMap);
+                                var textSymbol2 = new TextSymbol("Обрана траса")
+                                    .setColor(new Color([0, 80, 32, 255]))
+                                    .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                    .setOffset(0, 20);
+                                var textGraphic2 = new Graphic(labelPoint2, textSymbol2);
+                                __mg_map.graphics.add(textGraphic2);
                             } catch (err) {
-                                // ignore individual errors
+                                // ignore
                             }
-                        });
+                        }
 
                         try {
                             if (graphics.length > 0) {
@@ -360,6 +365,7 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     }
                 };
             },
+
 
             _onBtnSearchClick: function () {
                 var self = this;
@@ -401,28 +407,73 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     }
                 };
 
+
+
+
+
+
+
+
+
+
                 var onCoordsClick = function () {
                     highlightResStr(this);
                     __mg_map.graphics.clear();
                     var srMap = __mg_map.extent.spatialReference;
                     var coord_idx = this.getAttribute('mg-coord-idx');
+                    var coordsArray = __mg_search_res[coord_idx].coords;
 
-                    var myPolygon = {
+                    // Разворачиваем массив
+                    if (Array.isArray(coordsArray[0]) && Array.isArray(coordsArray[0][0])) {
+                        coordsArray = coordsArray[0];
+                    }
+
+                    // Для полигона нужно замкнуть линию
+                    var closedCoords = coordsArray.slice();
+                    closedCoords.push(closedCoords[0]);
+
+                    // Красный контур (используем полилинию вместо полигона)
+                    var myPolylineRed = {
                         'geometry': {
-                            'paths': __mg_search_res[coord_idx].coords,
+                            'paths': [coordsArray],
                             'spatialReference': srMap
                         },
                         'symbol': {
-                            'color': [0, 0, 0, 0], 'outline': {
-                                'color': [255, 0, 0, 255],
-                                'width': 2, 'type': 'esriSLS', 'style': 'esriSLSSolid'
-                            },
-                            'type': 'esriSFS', 'style': 'esriSFSSolid'
+                            'color': [255, 0, 0, 255],
+                            'width': 2,
+                            'type': 'esriSLS',
+                            'style': 'esriSLSSolid'
                         }
                     };
-
-                    var gra = new Graphic(myPolygon);
+                    var gra = new Graphic(myPolylineRed);
                     __mg_map.graphics.add(gra);
+
+                    // Зеленая линия
+                    var myPolylineGreen = {
+                        'geometry': {
+                            'paths': [coordsArray],
+                            'spatialReference': srMap
+                        },
+                        'symbol': {
+                            'color': [0, 180, 120, 255],
+                            'width': 5,
+                            'type': 'esriSLS',
+                            'style': 'esriSLSSolid'
+                        }
+                    };
+                    var gra2 = new Graphic(myPolylineGreen);
+                    __mg_map.graphics.add(gra2);
+
+                    // Подпись
+                    var firstCoord = coordsArray[0];
+                    var labelPoint = new Point(firstCoord[0], firstCoord[1], srMap);
+                    var textSymbol = new TextSymbol("Обрана траса")
+                        .setColor(new Color([0, 80, 32, 255]))
+                        .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                        .setOffset(0, 20);
+                    var textGraphic = new Graphic(labelPoint, textSymbol);
+                    __mg_map.graphics.add(textGraphic);
+
                     try {
                         var extent = graphicsUtils.graphicsExtent([gra]).expand(1.2);
                         __mg_map.setExtent(extent);
@@ -431,10 +482,23 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     }
                 };
 
+
+
+
+
                 var onRunProtClick = function () {
                     highlightResStr(this);
                     var coord_idx = this.getAttribute('mg-coord-idx');
-                    var geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(__mg_search_res[coord_idx].coords) + '}';
+                    var coords = __mg_search_res[coord_idx].coords;
+
+                    // Запомнить трассу для зелёной отрисовки
+                    var geojson = {
+                        type: "LineString",
+                        coordinates: coords
+                    };
+                    window.__mg_test2 = JSON.stringify(geojson);
+
+                    var geojson0 = '{"type": "LineString", "coordinates":' + JSON.stringify(coords) + '}';
                     var geojson1 = geojson0.replace("[[[", "[[");
                     var geojson2 = geojson1.replace("]]]", "]]");
 
@@ -442,6 +506,12 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         "ModalPopUp",
                         "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
                 };
+
+
+
+
+
+
 
                 var onResNameClick = function () {
                     highlightResStr(this);
