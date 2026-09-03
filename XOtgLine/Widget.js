@@ -486,10 +486,16 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
 
 
 
+
                 var onRunProtClick = function () {
                     highlightResStr(this);
                     var coord_idx = this.getAttribute('mg-coord-idx');
                     var coords = __mg_search_res[coord_idx].coords;
+
+                    // Разворачиваем массив, если он имеет двойную вложенность
+                    if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
+                        coords = coords[0];
+                    }
 
                     // Запомнить трассу для зелёной отрисовки
                     var geojson = {
