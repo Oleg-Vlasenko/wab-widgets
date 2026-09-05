@@ -755,6 +755,43 @@ def __parcelgeoml(parcel_geom=None, con=None):
     for row in rows:
         zng.append(row)
 
+
+
+
+    sql = '''
+    SELECT 
+        *,
+        ST_AsGeoJSON(geom) as geojson
+    FROM public."ZemUch_Dnepr_WMR" n
+    WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
+        '''
+
+    sql = '''
+    SELECT 
+        *,
+        ST_AsGeoJSON(geom) as geojson
+    FROM public."ZemUch_Dnepr_WMR" n
+    LIMIT 10
+        '''
+
+    # cur.execute(sql, (parcel_geom,))
+    cur.execute(sql)
+    rows = cur.fetchall()
+
+
+    zem = []
+    for row in rows:
+        zem.append(row)
+
+    # Отладка в консоль Flask
+    print(f"DEBUG: Найдено {len(zem)} земельных участков")
+    for idx, row in enumerate(zem):
+        print(f"DEBUG: Участок {idx+1}: kadnum={row.get('kadnum', 'Нет номера')}")
+
+
+
+
+
     sql = '''
     SELECT *
     FROM public."Історичний ареал" n
@@ -1129,6 +1166,7 @@ def __parcelgeoml(parcel_geom=None, con=None):
     parceldata['red_lines'] = rl_grp
     parceldata['rl_text'] = rl_text
     parceldata['rl_type'] = rl_type
+    parceldata['zem_uch'] = zem
     parceldata['hist'] = hist
     parceldata['hist_text1'] = hist_text1
     parceldata['hist_text2'] = hist_text2

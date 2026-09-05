@@ -310,7 +310,49 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                             .setOffset(0, 20);
                                         var textGraphic = new Graphic(labelPoint, textSymbol);
                                         __mg_map.graphics.add(textGraphic);
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        
+                                        
+                                    } else if (poly_type === 'zem') {
+                                        var myPolygon = {
+                                            geometry: {
+                                                rings: coords,
+                                                spatialReference: srMap
+                                            },
+                                            symbol: {
+                                                color: [204, 204, 0, 180],  // горчично-желтая заливка
+                                                outline: {
+                                                    color: [101, 67, 33, 255],  // коричневые границы
+                                                    width: 3,
+                                                    type: 'esriSLS',
+                                                    style: 'esriSLSSolid'
+                                                },
+                                                type: 'esriSFS',
+                                                style: 'esriSFSSolid'
+                                            }
+                                        };
+                                        var gra = new Graphic(myPolygon);
+                                        __mg_map.graphics.add(gra);
+                                        graphics.push(gra);
+                                        
+                                        // Подпись "Земельна ділянка"
+                                        var textSymbol = new TextSymbol("Земельна ділянка")
+                                        .setColor(new Color([101, 67, 33, 255]))  // коричневый цвет
+                                        .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                        .setOffset(0, -120);
+                                        var textGraphic = new Graphic(labelPoint, textSymbol);
+                                        __mg_map.graphics.add(textGraphic);
+                                        
                                     }
+
+
+
+
 
                                 } catch (err) {
                                     // ignore individual errors

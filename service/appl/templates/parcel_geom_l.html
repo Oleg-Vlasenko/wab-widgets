@@ -261,6 +261,33 @@
     </div>
     {% endif %}
 
+    {% if parceldata['zem_uch']|length > 0 %}
+    <div class="table">
+      <div class="row header blue">
+        <div class="cell">
+          <label class="container">&nbsp;Земельні ділянки
+            <input id="zem-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell cell2">
+        </div>
+      </div>
+
+      {% for row in parceldata['zem_uch'] %}
+      <div class="row data-row">
+        <div class="cell" data-title="id">
+          <label class="container">&nbsp;{{ row.get('kadnum', '') }}
+            <input type="checkbox" class="zem-strings" _prnstr="{{ row.get('kadnum', '') }}"><span class="checkmark str-checkmark"></span>
+          </label>
+        </div>
+        <div class="cell" data-title="data">
+        </div>
+        <span class="line-geom" data-poly-type="zem" style="display:none;">{{ row.get('geojson', '') | tojson }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% if parceldata['red_lines']|length > 0 %}
     <div class="table">
 
