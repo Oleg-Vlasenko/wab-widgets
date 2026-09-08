@@ -120,7 +120,8 @@
     }
 
     .cell1 {
-      width: 300px;
+      < !-- width: 300px;
+      -->
     }
 
     .cell2 {
@@ -222,7 +223,7 @@
       <div class="row header blue">
         <div class="cell">
           <label class="container">&nbsp;Зонінг 1
-            <input id="zoning-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
+            <input id="zoning-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -245,7 +246,7 @@
 					'width=700,height=700,top=180,left=260');
 					return false;" target="_blank">{{ row[0] }} - {{ row[1] }}</a>
             {% endif %}
-            <input type="checkbox" class="zng-strings" _prnstr="{{ row[3] }}"><span
+            <input type="checkbox" class="zng-strings checkbox-item" _prnstr="{{ row[3] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -265,7 +266,7 @@
       <div class="row header blue">
         <div class="cell">
           <label class="container">&nbsp;Земельні ділянки
-            <input id="zem-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
+            <input id="zem-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -276,7 +277,7 @@
       <div class="row data-row">
         <div class="cell" data-title="id">
           <label class="container">&nbsp;{{ row.get('kadnum', '') }}
-            <input type="checkbox" class="zem-strings" _prnstr="{{ row.get('kadnum', '') }}"><span
+            <input type="checkbox" class="zem-strings checkbox-item" _prnstr="{{ row.get('kadnum', '') }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -295,7 +296,7 @@
         <div class="cell cell1">
           <label class="container">&nbsp;
             Червоні лінії
-            <input id="red_lines-checkbox" type="checkbox" _rltype="{{ parceldata['rl_type'] }}"
+            <input id="red_lines-checkbox" type="checkbox" class="checkbox-group" _rltype="{{ parceldata['rl_type'] }}"
               _prnhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
@@ -307,7 +308,7 @@
       <div class="row data-row">
         <div class="cell cell1" data-title="id">
           <label class="container">{{ row[1] }}
-            <input type="checkbox" class="rl-strings-{{ row[0] }}" _prnstr="{{ row[2] }}"><span
+            <input type="checkbox" class="rl-strings-{{ row[0] }} checkbox-item" _prnstr="{{ row[2] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -329,7 +330,7 @@
         <div class="cell">
           <label class="container">&nbsp;
             Зони історико-культурного призначення
-            <input id="hist-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
+            <input id="hist-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -341,7 +342,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Територія історичних ареалів
-            <input id="hist1" type="checkbox" _prnstr="{{ parceldata['hist_text1'] }}"><span
+            <input id="hist1" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['hist_text1'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -355,7 +356,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             {{ parceldata['hist_text21'] }}
-            <input id="hist2" type="checkbox" _prnstr="{{ parceldata['hist_text2'] }}"><span
+            <input id="hist2" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['hist_text2'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -369,7 +370,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Зони об'єктів природно-заповідного фонду
-            <input id="hist3" type="checkbox" _prnstr="{{ parceldata['hist_text3'] }}"><span
+            <input id="hist3" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['hist_text3'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -387,7 +388,7 @@
       <div class="row header blue">
         <div class="cell cell1">
           <label class="container">&nbsp;ПЗС та ВЗ
-            <input id="pzsvs-checkbox" type="checkbox" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span
+            <input id="pzsvs-checkbox" type="checkbox" class="checkbox-group" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span
               class="checkmark header-checkmark"></span>
           </label>
         </div>
@@ -399,7 +400,7 @@
       <div class="row data-row">
         <div class="cell cell1" data-title="id">
           <label class="container">{{ row[0] }}
-            <input type="checkbox" class="pzsvs-strings" _prnstr="{{ row[1] }}"><span
+            <input type="checkbox" class="pzsvs-strings checkbox-item" _prnstr="{{ row[1] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -417,7 +418,7 @@
       <div class="row header blue">
         <div class="cell cell1">
           <label class="container">&nbsp;Санітарно-захисні зони
-            <input id="prot-checkbox" type="checkbox" _prnhdr="{{ parceldata['prot_text'] }}"><span
+            <input id="prot-checkbox" type="checkbox" class="checkbox-group" _prnhdr="{{ parceldata['prot_text'] }}"><span
               class="checkmark header-checkmark"></span>
           </label>
         </div>
@@ -429,7 +430,7 @@
       <div class="row data-row">
         <div class="cell cell1" data-title="id">
           <label class="container">{{ row[0] }}
-            <input type="checkbox" class="prot-strings" _prnstr="{{ row[1] }}"><span
+            <input type="checkbox" class="prot-strings checkbox-item" _prnstr="{{ row[1] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -448,7 +449,7 @@
         <div class="cell">
           <label class="container">&nbsp;
             Інші планування обмежень
-            <input id="brd-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
+            <input id="brd-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -460,7 +461,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Межі лісового господарства
-            <input id="brd1" type="checkbox" _prnstr="{{ parceldata['brd_text1'] }}"><span
+            <input id="brd1" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['brd_text1'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -474,7 +475,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Території, що не підлягають забудові
-            <input id="brd2" type="checkbox" _prnstr="{{ parceldata['brd_text2'] }}"><span
+            <input id="brd2" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['brd_text2'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -488,7 +489,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Об’єкти зеленого господарства
-            <input id="brd3" type="checkbox" _prnstr="{{ parceldata['brd_text3'] }}"><span
+            <input id="brd3" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['brd_text3'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -507,7 +508,7 @@
         <div class="cell">
           <label class="container">&nbsp;
             Наявність раніше виданих або розглянутих документів
-            <input id="otd-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
+            <input id="otd-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -519,7 +520,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Містобудівні умови та обмеження забудови
-            <input id="otd1" type="checkbox" _prnstr="{{ parceldata['otdocs_text1'] }}"><span
+            <input id="otd1" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['otdocs_text1'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -533,7 +534,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Будівельні паспорти
-            <input id="otd2" type="checkbox" _prnstr="{{ parceldata['otdocs_text2'] }}"><span
+            <input id="otd2" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['otdocs_text2'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -547,7 +548,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Паспорта прив’язки тимчасової споруди
-            <input id="otd3" type="checkbox" _prnstr="{{ parceldata['otdocs_text3'] }}"><span
+            <input id="otd3" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['otdocs_text3'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -561,7 +562,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Протокол засідання архітектурно-містобудівної ради
-            <input id="otd4" type="checkbox" _prnstr="{{ parceldata['otdocs_text4'] }}"><span
+            <input id="otd4" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['otdocs_text4'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -575,7 +576,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Містобудівні висновки або витяги з містобудівної документації
-            <input id="otd5" type="checkbox" _prnstr="{{ parceldata['otdocs_text5'] }}"><span
+            <input id="otd5" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['otdocs_text5'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -589,7 +590,7 @@
         <div class="cell" data-title="id">
           <label class="container">&nbsp;
             Наявність дозволів
-            <input id="otd6" type="checkbox" _prnstr="{{ parceldata['otdocs_text6'] }}"><span
+            <input id="otd6" type="checkbox" class="checkbox-item" _prnstr="{{ parceldata['otdocs_text6'] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
         </div>
@@ -638,7 +639,7 @@
       geoms: []
     };
 
-    document.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+    document.querySelectorAll('input.checkbox-item').forEach(function (input) {
       if (input.checked) {
         let data_row = $(input).closest('.data-row');
         if (!data_row.length) return;
@@ -693,46 +694,30 @@
   }
 
   // Обработка изменения состояния отдельных чекбоксов
-  document.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+  document.querySelectorAll('input.checkbox-item').forEach(function (checkbox) {
     checkbox.addEventListener('change', function (event) {
       collectAndSendGeometries();
     });
   });
 
+  // Обработка групповых чекбоксов
+  document.querySelectorAll('input.checkbox-group').forEach(function (headerCheckbox) {
+    headerCheckbox.addEventListener('change', function (event) {
+      let isChecked = headerCheckbox.checked;
+      let table = $(headerCheckbox).closest('.table');
 
+      // Находим все дочерние чекбоксы внутри текущей таблицы
+      let groupCheckboxes = table.find('input.checkbox-item');
 
-
-
-  // Обработка групповых галок (header-checkmark)
-  document.querySelectorAll('.header-checkmark').forEach(function (headerSpan) {
-    let headerCheckbox = headerSpan.previousElementSibling;
-
-    if (headerCheckbox) {
-      headerCheckbox.addEventListener('change', function (event) {
-        let isChecked = headerCheckbox.checked;
-        let table = $(headerCheckbox).closest('.table');
-
-        // Находим все чекбоксы внутри группы (исключая саму групповую)
-        let groupCheckboxes = table.find('input[type="checkbox"]').filter(function () {
-          return this !== headerCheckbox;
-        });
-
-        // Устанавливаем состояние всем чекбоксам группы (без вызова change)
-        groupCheckboxes.each(function () {
-          this.checked = isChecked;
-        });
-
-        // Один раз отправляем данные после изменения всех чекбоксов
-        collectAndSendGeometries();
+      // Устанавливаем состояние всем чекбоксам группы
+      groupCheckboxes.each(function () {
+        this.checked = isChecked;
       });
-    }
+
+      // Один раз отправляем данные после изменения всех чекбоксов
+      collectAndSendGeometries();
+    });
   });
-
-
-
-
-
-
 
   function postpopup() {
     if ($('#zoning-checkbox:checked').length > 0) {
