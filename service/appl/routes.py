@@ -766,16 +766,16 @@ def __parcelgeoml(parcel_geom=None, con=None):
     WHERE ST_Intersects(n.geom, ST_SetSRID(ST_GeomFromGeoJSON(%s)::geometry,0))
         '''
 
-    sql = '''
-    SELECT 
-        *,
-        ST_AsGeoJSON(geom) as geojson
-    FROM public."ZemUch_Dnepr_WMR" n
-    LIMIT 10
-        '''
+    # sql = '''
+    # SELECT 
+    #     *,
+    #     ST_AsGeoJSON(geom) as geojson
+    # FROM public."ZemUch_Dnepr_WMR" n
+    # LIMIT 10
+    #     '''
 
-    # cur.execute(sql, (parcel_geom,))
-    cur.execute(sql)
+    cur.execute(sql, (parcel_geom,))
+    # cur.execute(sql)
     rows = cur.fetchall()
 
 

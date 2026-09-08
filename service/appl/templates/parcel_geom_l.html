@@ -212,7 +212,7 @@
 
   <br>
 
-  <h3><a href="javascript:postpopup()">Вивести друковану форму</a></h3>
+  <!-- <h3><a href="javascript:postpopup()">Вивести друковану форму</a></h3> -->
 
   <div class="wrapper">
 
@@ -222,8 +222,7 @@
       <div class="row header blue">
         <div class="cell">
           <label class="container">&nbsp;Зонінг 1
-            <input id="zoning-checkbox" type="checkbox" checked="checked"><span
-              class="checkmark header-checkmark"></span>
+            <input id="zoning-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -241,11 +240,11 @@
             {% if row[2] == 'nolnk' %}
             {{ row[0] }} - {{ row[1] }}
             {% else %}
-				<a href="#" onclick="window.open('{{ docs_base_url }}/docs/{{ row[2] }}.htm', 
+            <a href="#" onclick="window.open('{{ docs_base_url }}/docs/{{ row[2] }}.htm', 
 					'newwindow',
 					'width=700,height=700,top=180,left=260');
 					return false;" target="_blank">{{ row[0] }} - {{ row[1] }}</a>
-			{% endif %}
+            {% endif %}
             <input type="checkbox" class="zng-strings" _prnstr="{{ row[3] }}"><span
               class="checkmark str-checkmark"></span>
           </label>
@@ -266,7 +265,7 @@
       <div class="row header blue">
         <div class="cell">
           <label class="container">&nbsp;Земельні ділянки
-            <input id="zem-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+            <input id="zem-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -277,7 +276,8 @@
       <div class="row data-row">
         <div class="cell" data-title="id">
           <label class="container">&nbsp;{{ row.get('kadnum', '') }}
-            <input type="checkbox" class="zem-strings" _prnstr="{{ row.get('kadnum', '') }}"><span class="checkmark str-checkmark"></span>
+            <input type="checkbox" class="zem-strings" _prnstr="{{ row.get('kadnum', '') }}"><span
+              class="checkmark str-checkmark"></span>
           </label>
         </div>
         <div class="cell" data-title="data">
@@ -295,7 +295,7 @@
         <div class="cell cell1">
           <label class="container">&nbsp;
             Червоні лінії
-            <input id="red_lines-checkbox" type="checkbox" checked="checked" _rltype="{{ parceldata['rl_type'] }}"
+            <input id="red_lines-checkbox" type="checkbox" _rltype="{{ parceldata['rl_type'] }}"
               _prnhdr="{{ parceldata['rl_text'] }}"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
@@ -329,7 +329,7 @@
         <div class="cell">
           <label class="container">&nbsp;
             Зони історико-культурного призначення
-            <input id="hist-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+            <input id="hist-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -387,7 +387,7 @@
       <div class="row header blue">
         <div class="cell cell1">
           <label class="container">&nbsp;ПЗС та ВЗ
-            <input id="pzsvs-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span
+            <input id="pzsvs-checkbox" type="checkbox" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span
               class="checkmark header-checkmark"></span>
           </label>
         </div>
@@ -417,7 +417,7 @@
       <div class="row header blue">
         <div class="cell cell1">
           <label class="container">&nbsp;Санітарно-захисні зони
-            <input id="prot-checkbox" type="checkbox" checked="checked" _prnhdr="{{ parceldata['prot_text'] }}"><span
+            <input id="prot-checkbox" type="checkbox" _prnhdr="{{ parceldata['prot_text'] }}"><span
               class="checkmark header-checkmark"></span>
           </label>
         </div>
@@ -448,7 +448,7 @@
         <div class="cell">
           <label class="container">&nbsp;
             Інші планування обмежень
-            <input id="brd-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+            <input id="brd-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -507,7 +507,7 @@
         <div class="cell">
           <label class="container">&nbsp;
             Наявність раніше виданих або розглянутих документів
-            <input id="otd-checkbox" type="checkbox" checked="checked"><span class="checkmark header-checkmark"></span>
+            <input id="otd-checkbox" type="checkbox"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -631,104 +631,107 @@
 
   });
 
+  // Функция сбора и отправки геометрий
+  function collectAndSendGeometries() {
+    let geom_data_list = {
+      is_full: false,
+      geoms: []
+    };
 
-  $('#zoning-checkbox').change(function () {
-    $(this).parents('.table').find('.data-row').toggle()
-  });
+    document.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+      if (input.checked) {
+        let data_row = $(input).closest('.data-row');
+        if (!data_row.length) return;
 
-  $('#hist-checkbox').change(function () {
-    $(this).parents('.table').find('.data-row').toggle()
-  });
+        let zng_geom_elt = data_row.find('.line-geom');
+        let zng_geom_raw = zng_geom_elt.text().trim();
+        let zng_type = zng_geom_elt.attr('data-poly-type');
 
-  $('#red_lines-checkbox').change(function () {
-    $(this).parents('.table').find('.data-row').toggle()
-  });
-
-  $('#pzsvs-checkbox').change(function () {
-    $(this).parents('.table').find('.data-row').toggle()
-  });
-
-  $('#prot-checkbox').change(function () {
-    $(this).parents('.table').find('.data-row').toggle()
-  });
-
-  $('#brd-checkbox').change(function () {
-    $(this).parents('.table').find('.data-row').toggle()
-  });
-
-  $('#otd-checkbox').change(function () {
-    $(this).parents('.table').find('.data-row').toggle()
-  });
-
-
-  document.querySelectorAll('input[type="checkbox"] + span.str-checkmark').forEach(function (span) {
-
-    span.addEventListener('click', function (event) {
-      let current_input = event.target.previousElementSibling;
-
-      let geom_data_list = {
-        is_full: false,
-        geoms: []
-      };
-
-      document.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
-        let is_active = input.checked || (input === current_input && !input.checked);
-
-        if (is_active) {
-          let data_row = $(input).closest('.data-row');
-          let zng_geom_elt = data_row.find('.line-geom');
-          let zng_geom_raw = zng_geom_elt.text().trim();
-          let zng_type = zng_geom_elt.attr('data-poly-type');
-
-          if (zng_geom_raw !== "") {
-            try {
-              let parsed = JSON.parse(zng_geom_raw);
-              if (Array.isArray(parsed)) {
-                // это массив GeoJSON-объектов
-                parsed.forEach(g => {
-                  geom_data_list.geoms.push({
-                    poly_type: zng_type,
-                    geom: JSON.stringify(g)
-                  });
-                });
-              } else {
-                // это одиночный GeoJSON
+        if (zng_geom_raw !== "") {
+          try {
+            let parsed = JSON.parse(zng_geom_raw);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(g => {
                 geom_data_list.geoms.push({
                   poly_type: zng_type,
-                  geom: zng_geom_raw
+                  geom: JSON.stringify(g)
                 });
-              }
-            } catch (e) {
-              console.warn("GeoJSON parsing error:", e);
-              // fallback — строка без парсинга
+              });
+            } else {
               geom_data_list.geoms.push({
                 poly_type: zng_type,
                 geom: zng_geom_raw
               });
             }
+          } catch (e) {
+            console.warn("GeoJSON parsing error:", e);
+            geom_data_list.geoms.push({
+              poly_type: zng_type,
+              geom: zng_geom_raw
+            });
           }
         }
-      });
-
-      if (geom_data_list.geoms.length > 0) {
-        geom_data_list.is_full = true;
       }
-
-      $.ajax({
-        url: '/render_poly',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(geom_data_list),
-        success: function (response) {
-          // alert('Server response: ' + response);
-        },
-        error: function (xhr, status, error) {
-          console.error('Request error:', error);
-        }
-      });
     });
 
+    if (geom_data_list.geoms.length > 0) {
+      geom_data_list.is_full = true;
+    }
+
+    $.ajax({
+      url: '/render_poly',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(geom_data_list),
+      success: function (response) {
+        // alert('Server response: ' + response);
+      },
+      error: function (xhr, status, error) {
+        console.error('Request error:', error);
+      }
+    });
+  }
+
+  // Обработка изменения состояния отдельных чекбоксов
+  document.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+    checkbox.addEventListener('change', function (event) {
+      collectAndSendGeometries();
+    });
   });
+
+
+
+
+
+  // Обработка групповых галок (header-checkmark)
+  document.querySelectorAll('.header-checkmark').forEach(function (headerSpan) {
+    let headerCheckbox = headerSpan.previousElementSibling;
+
+    if (headerCheckbox) {
+      headerCheckbox.addEventListener('change', function (event) {
+        let isChecked = headerCheckbox.checked;
+        let table = $(headerCheckbox).closest('.table');
+
+        // Находим все чекбоксы внутри группы (исключая саму групповую)
+        let groupCheckboxes = table.find('input[type="checkbox"]').filter(function () {
+          return this !== headerCheckbox;
+        });
+
+        // Устанавливаем состояние всем чекбоксам группы (без вызова change)
+        groupCheckboxes.each(function () {
+          this.checked = isChecked;
+        });
+
+        // Один раз отправляем данные после изменения всех чекбоксов
+        collectAndSendGeometries();
+      });
+    }
+  });
+
+
+
+
+
 
 
   function postpopup() {
