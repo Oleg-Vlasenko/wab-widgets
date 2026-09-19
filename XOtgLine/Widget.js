@@ -310,20 +310,27 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                             .setOffset(0, 20);
                                         var textGraphic = new Graphic(labelPoint, textSymbol);
                                         __mg_map.graphics.add(textGraphic);
-                                        
-                                        
-                                        
-                                        
-                                        
 
-                                        
-                                        
+
+
+
+
+
+
+
+
                                     } else if (poly_type === 'zem') {
+                                        var zemPolygon = new Polygon({
+                                            rings: coords,
+                                            spatialReference: srMap
+                                        });
+
+                                        var rings = Array.isArray(coords[0][0]) ? coords : [coords];
+                                        var firstPt = rings[0][0];
+                                        var zemLabelPoint = new Point(firstPt[0], firstPt[1], srMap);
+
                                         var myPolygon = {
-                                            geometry: {
-                                                rings: coords,
-                                                spatialReference: srMap
-                                            },
+                                            geometry: zemPolygon,
                                             symbol: {
                                                 color: [204, 204, 0, 180],  // горчично-желтая заливка
                                                 outline: {
@@ -339,16 +346,47 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                                         var gra = new Graphic(myPolygon);
                                         __mg_map.graphics.add(gra);
                                         graphics.push(gra);
-                                        
-                                        // Подпись "Земельна ділянка"
-                                        var textSymbol = new TextSymbol("Земельна ділянка")
-                                        .setColor(new Color([101, 67, 33, 255]))  // коричневый цвет
-                                        .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
-                                        .setOffset(0, -120);
-                                        var textGraphic = new Graphic(labelPoint, textSymbol);
+
+                                        // Центроид полигона для подписи
+                                        var zemCentroid = null;
+                                        try {
+                                            var c = zemPolygon.getCentroid();
+                                            if (c && typeof c.x === 'number' && typeof c.y === 'number') {
+                                                zemCentroid = new Point(c.x, c.y, srMap);
+                                            }
+                                        } catch (eCentroid) {
+                                            zemCentroid = null;
+                                        }
+                                        if (!zemCentroid) {
+                                            zemCentroid = zemLabelPoint;
+                                        }
+
+
+                                        // Подпись: кадастровый номер из info, иначе заглушка
+                                        var zemLabel = (item.info && item.info.length > 0)
+                                            ? item.info
+                                            : 'Земельна ділянка';
+
+
+                                        // Подпись по центроиду
+                                        var textSymbol = new TextSymbol(zemLabel)
+                                            .setColor(new Color([101, 67, 33, 255]))  // коричневый цвет
+                                            .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                            .setOffset(0, 0);
+                                        var textGraphic = new Graphic(zemCentroid, textSymbol);
                                         __mg_map.graphics.add(textGraphic);
-                                        
+
+                                        // Дублирующая подпись над первой вершиной полигона
+                                        // var textSymbol2 = new TextSymbol("Дилянка")
+                                        //     .setColor(new Color([101, 67, 33, 255]))
+                                        //     .setFont(new Font("14pt").setWeight(Font.WEIGHT_BOLD))
+                                        //     .setOffset(0, 20);
+                                        // var textGraphic2 = new Graphic(zemLabelPoint, textSymbol2);
+                                        // __mg_map.graphics.add(textGraphic2);
+
+
                                     }
+
 
 
 
@@ -409,6 +447,9 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
             },
 
 
+
+
+
             _onBtnSearchClick: function () {
                 var self = this;
                 var template = document.getElementById('mg-lines-template-trs');
@@ -448,15 +489,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         separator_2.classList.add('mg-separator-selected');
                     }
                 };
-
-
-
-
-
-
-
-
-
 
                 var onCoordsClick = function () {
                     highlightResStr(this);
@@ -524,11 +556,6 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     }
                 };
 
-
-
-
-
-
                 var onRunProtClick = function () {
                     highlightResStr(this);
                     var coord_idx = this.getAttribute('mg-coord-idx');
@@ -555,32 +582,66 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                         "popup=yes,toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=0,width=700,height=500,left=490,top=100");
                 };
 
-
-
-
-
-
-
                 var onResNameClick = function () {
                     highlightResStr(this);
                 };
 
-                var req_track = document.getElementById('mg-req-track').value;
-                req_track = encodeURIComponent(req_track);
+                // Вариант 2: Получаем элемент, убираем пробелы в самом инпуте, а затем проверяем и кодируем
+                var inputElt = document.getElementById('mg-req-track');
+                if (inputElt) {
+                    inputElt.value = inputElt.value.trim();
+                }
+
+                var req_track = inputElt ? inputElt.value : '';
                 if (!req_track.length) {
                     alert('Порожній запит!');
                     return;
                 }
+                req_track = encodeURIComponent(req_track);
+
+
+
+
+
+
 
                 var xhrReq = new XMLHttpRequest();
+
+                // Флаг для отслеживания статуса
+                var isSearchHandled = false;
+
+                // Таймер на 10 секунд
+                var searchTimeout = setTimeout(function () {
+                    if (!isSearchHandled) {
+                        isSearchHandled = true;
+                        xhrReq.abort(); // Отменяем зависший запрос
+                        alert('Нічого не знайдено!');
+                    }
+                }, 10000);
+
                 xhrReq.open('GET', '/flask_proxy/index.php?req_addr_trs=' + req_track);
                 xhrReq.send();
 
                 xhrReq.onload = function () {
+                    // Если таймаут уже сработал, ничего не делаем
+                    if (isSearchHandled) return;
+
+                    // Снимаем таймер, так как ответ получен
+                    clearTimeout(searchTimeout);
+                    isSearchHandled = true;
+
                     try {
                         var res = JSON.parse(xhrReq.response);
                     } catch (err) {
                         container.innerHTML = '';
+                        alert('Нічого не знайдено!');
+                        return;
+                    }
+
+                    // Если массив результатов пуст
+                    if (!Array.isArray(res) || res.length === 0) {
+                        container.innerHTML = '';
+                        alert('Нічого не знайдено!');
                         return;
                     }
 
@@ -595,6 +656,13 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                             'coords': coords.coordinates
                         };
                         __mg_search_res.push(sr_res);
+                    }
+
+                    // Если в результате парсинга валидных геоданных ничего не сформировалось
+                    if (__mg_search_res.length === 0) {
+                        container.innerHTML = '';
+                        alert('Нічого не знайдено!');
+                        return;
                     }
 
                     container.innerHTML = '';
@@ -614,8 +682,21 @@ define(['dojo/_base/declare', 'jimu/BaseWidget'
                     }
                 };
 
-                xhrReq.onerror = function () { };
+                xhrReq.onerror = function () {
+                    if (isSearchHandled) return;
+                    clearTimeout(searchTimeout);
+                    isSearchHandled = true;
+                    alert('Нічого не знайдено!');
+                };
+
+
+
+
             },
+
+
+
+
 
             addToMap: function (evt) {
                 var self = this;

@@ -223,7 +223,8 @@
       <div class="row header blue">
         <div class="cell">
           <label class="container">&nbsp;Зонінг 1
-            <input id="zoning-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
+            <input id="zoning-checkbox" type="checkbox" class="checkbox-group"><span
+              class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -266,7 +267,8 @@
       <div class="row header blue">
         <div class="cell">
           <label class="container">&nbsp;Земельні ділянки
-            <input id="zem-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
+            <input id="zem-checkbox" type="checkbox" class="checkbox-group"><span
+              class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -330,7 +332,8 @@
         <div class="cell">
           <label class="container">&nbsp;
             Зони історико-культурного призначення
-            <input id="hist-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
+            <input id="hist-checkbox" type="checkbox" class="checkbox-group"><span
+              class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -388,8 +391,8 @@
       <div class="row header blue">
         <div class="cell cell1">
           <label class="container">&nbsp;ПЗС та ВЗ
-            <input id="pzsvs-checkbox" type="checkbox" class="checkbox-group" _prnhdr="{{ parceldata['pzsvs_text'] }}"><span
-              class="checkmark header-checkmark"></span>
+            <input id="pzsvs-checkbox" type="checkbox" class="checkbox-group"
+              _prnhdr="{{ parceldata['pzsvs_text'] }}"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -418,8 +421,8 @@
       <div class="row header blue">
         <div class="cell cell1">
           <label class="container">&nbsp;Санітарно-захисні зони
-            <input id="prot-checkbox" type="checkbox" class="checkbox-group" _prnhdr="{{ parceldata['prot_text'] }}"><span
-              class="checkmark header-checkmark"></span>
+            <input id="prot-checkbox" type="checkbox" class="checkbox-group"
+              _prnhdr="{{ parceldata['prot_text'] }}"><span class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -449,7 +452,8 @@
         <div class="cell">
           <label class="container">&nbsp;
             Інші планування обмежень
-            <input id="brd-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
+            <input id="brd-checkbox" type="checkbox" class="checkbox-group"><span
+              class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -508,7 +512,8 @@
         <div class="cell">
           <label class="container">&nbsp;
             Наявність раніше виданих або розглянутих документів
-            <input id="otd-checkbox" type="checkbox" class="checkbox-group"><span class="checkmark header-checkmark"></span>
+            <input id="otd-checkbox" type="checkbox" class="checkbox-group"><span
+              class="checkmark header-checkmark"></span>
           </label>
         </div>
         <div class="cell cell2">
@@ -647,6 +652,7 @@
         let zng_geom_elt = data_row.find('.line-geom');
         let zng_geom_raw = zng_geom_elt.text().trim();
         let zng_type = zng_geom_elt.attr('data-poly-type');
+        let info = (input.getAttribute('_prnstr') || '').trim();
 
         if (zng_geom_raw !== "") {
           try {
@@ -655,20 +661,23 @@
               parsed.forEach(g => {
                 geom_data_list.geoms.push({
                   poly_type: zng_type,
-                  geom: JSON.stringify(g)
+                  geom: JSON.stringify(g),
+                  info: info
                 });
               });
             } else {
               geom_data_list.geoms.push({
                 poly_type: zng_type,
-                geom: zng_geom_raw
+                geom: zng_geom_raw,
+                info: info
               });
             }
           } catch (e) {
             console.warn("GeoJSON parsing error:", e);
             geom_data_list.geoms.push({
               poly_type: zng_type,
-              geom: zng_geom_raw
+              geom: zng_geom_raw,
+              info: info
             });
           }
         }

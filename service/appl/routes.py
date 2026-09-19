@@ -1278,9 +1278,11 @@ def __render_poly():
         for item in req_data['geoms']:
             poly_type = item.get('poly_type', '')
             geom = item.get('geom', '')
+            info = item.get('info', '')
             if poly_type and geom:
                 proxy_data["items"].append({
                     "poly_type": poly_type,
+                    "info": info,
                     "data": geom
                 })
         if not proxy_data["items"]:
